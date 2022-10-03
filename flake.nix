@@ -65,14 +65,7 @@
       user   = "alialabbas";
     };
 
-    nixosConfigurations.wsl = mkVM "wsl" rec {
-      inherit nixpkgs home-manager overlays;
-      system = "x86_64-linux";
-      user   = "alialabbas";
-      extraMods = [ "${inputs.nixos-configuration}/configuration.nix" ];
-    };
-
-    nixosConfigurations.test = nixpkgs.lib.nixosSystem rec {
+    nixosConfigurations.wsl = nixpkgs.lib.nixosSystem rec {
       system = "x86_64-linux";
       modules = [
         { nixpkgs.overlays = overlays; }
