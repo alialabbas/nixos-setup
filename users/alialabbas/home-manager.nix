@@ -213,15 +213,10 @@ let sources = import ../../nix/sources.nix; in {
     package = pkgs.neovim-nightly;
 
     plugins = with pkgs; [
-      customVim.vim-cue
       customVim.vim-fish
       customVim.vim-fugitive
-      customVim.vim-glsl
       customVim.vim-misc
       customVim.vim-pgsql
-      customVim.vim-tla
-      customVim.vim-zig
-      customVim.pigeon
       customVim.AfterColors
 
       customVim.vim-nord
@@ -235,12 +230,10 @@ let sources = import ../../nix/sources.nix; in {
 
       vimPlugins.vim-airline
       vimPlugins.vim-airline-themes
-      vimPlugins.vim-eunuch
       vimPlugins.vim-gitgutter
 
       vimPlugins.vim-markdown
       vimPlugins.vim-nix
-      vimPlugins.typescript-vim
     ];
 
     extraConfig = (import ./vim-config.nix) { inherit sources; };
