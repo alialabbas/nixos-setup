@@ -54,6 +54,7 @@
         kitty = inputs.nixpkgs-unstable.legacyPackages.${prev.system}.kitty;
       })
       (import ./users/alialabbas/vim.nix)
+      (import ./overlays/vim.nix)
     ];
 
     wsl-modules = nixos-wsl.nixosModules;
