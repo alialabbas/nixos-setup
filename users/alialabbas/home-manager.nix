@@ -212,27 +212,25 @@ let sources = import ../../nix/sources.nix; in {
     package = pkgs.neovim-nightly;
 
     plugins = with pkgs; [
-      customVim.vim-fish
-      customVim.vim-fugitive
-      customVim.vim-misc
-      customVim.vim-pgsql
-      customVim.AfterColors
-
-      customVim.vim-nord
-      customVim.nvim-comment
-      customVim.nvim-lspconfig
-      customVim.nvim-plenary # required for telescope
-      customVim.nvim-telescope
-      customVim.nvim-treesitter
-      customVim.nvim-treesitter-playground
-      customVim.nvim-treesitter-textobjects
-
+      vimPlugins.vim-fish
+      vimPlugins.vim-fugitive
+      vimPlugins.pgsql-vim
+      vimPlugins.nvim-lspconfig
+      vimPlugins.plenary-nvim # required for telescope
+      vimPlugins.telescope-nvim
+      vimPlugins.nvim-treesitter
+      vimPlugins.nvim-treesitter-textobjects
       vimPlugins.vim-airline
       vimPlugins.vim-airline-themes
       vimPlugins.vim-gitgutter
-
       vimPlugins.vim-markdown
       vimPlugins.vim-nix
+
+      customVim.AfterColors
+      customVim.vim-misc
+      customVim.vim-nord
+      customVim.nvim-comment
+      customVim.nvim-treesitter-playground
     ];
 
     extraConfig = (import ./vim-config.nix) { inherit sources; };
