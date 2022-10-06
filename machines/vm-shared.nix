@@ -1,9 +1,6 @@
 { config, pkgs, lib, currentSystem, currentSystemName,... }:
 
 {
-  # Be careful updating this.
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-
   # use unstable nix so we can access flakes
   nix = {
     package = pkgs.nixUnstable;
@@ -16,10 +13,6 @@
 
   # We expect to run the VM on hidpi machines.
   hardware.video.hidpi.enable = true;
-
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
 
   # Define your hostname.
   networking.hostName = "dev";
