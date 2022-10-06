@@ -69,10 +69,11 @@
     nixosConfigurations.wsl = nixpkgs.lib.nixosSystem rec {
       system = "x86_64-linux";
       modules = [
-        { nixpkgs.overlays = overlays; }
+        { nixpkgs.overlays = overlays ++ [ (import ./overlays/wsl.nix) ]; }
         wsl-modules.wsl
         ./users/alialabbas/nixos.nix
         ./users/alialabbas/wsl.nix
+        ./machines/vm-shared.nix
         home-manager.nixosModules.home-manager {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;

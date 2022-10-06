@@ -13,11 +13,4 @@ with lib;
         startMenuLaunchers = true;
     };
 
-    nix.package = pkgs.nixFlakes;
-    nix.extraOptions = ''
-        experimental-features = nix-command flakes
-    '';
-
-    system.stateVersion = "22.05";
-
 }
