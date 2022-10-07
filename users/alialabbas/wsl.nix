@@ -11,6 +11,11 @@ with lib;
         automountPath = "/mnt";
         defaultUser = "alialabbas";
         startMenuLaunchers = true;
+        wslConf = {
+            network = {
+                hostname = "dev";
+            };
+        };
     };
 
 }
