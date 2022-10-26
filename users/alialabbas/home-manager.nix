@@ -166,6 +166,7 @@ let sources = import ../../nix/sources.nix; in {
       push.default = "tracking";
       init.defaultBranch = "main";
     };
+    ignores = [ "*~" "*.swp" "result" "bin/" "obj/" ];
   };
 
   programs.tmux = {
