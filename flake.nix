@@ -58,6 +58,7 @@
       (import ./overlays/vim.nix)
       (import ./overlays/k8-helpers.nix)
       (import ./overlays/launchers.nix)
+      (import ./overlays/fzf.nix)
     ];
 
     wsl-modules = nixos-wsl.nixosModules;

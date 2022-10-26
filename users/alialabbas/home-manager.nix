@@ -42,6 +42,7 @@ let sources = import ../../nix/sources.nix; in {
     pkgs.kexec
     pkgs.hreleases
     pkgs.hdelns
+    pkgs.fzf-repl
   ];
 
   #---------------------------------------------------------------------
