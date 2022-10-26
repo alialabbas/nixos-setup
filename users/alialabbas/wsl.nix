@@ -13,7 +13,7 @@ with lib;
         startMenuLaunchers = true;
         wslConf = {
             network = {
-                hostname = "dev";
+                hostname = "wsl";
             };
         };
     };
