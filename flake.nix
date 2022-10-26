@@ -53,8 +53,11 @@
         # To get Kitty 0.24.x. Delete this once it hits release.
         kitty = inputs.nixpkgs-unstable.legacyPackages.${prev.system}.kitty;
       })
+      # Think of adding a centralized way to apply common overlays
       (import ./users/alialabbas/vim.nix)
       (import ./overlays/vim.nix)
+      (import ./overlays/k8-helpers.nix)
+      (import ./overlays/launchers.nix)
     ];
 
     wsl-modules = nixos-wsl.nixosModules;

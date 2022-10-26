@@ -1,5 +1,6 @@
 font_family Fira Code
 font_size 10.0
+enable_audio_bell no
 
 #--------------------------------------------------------------------
 # Key bindings

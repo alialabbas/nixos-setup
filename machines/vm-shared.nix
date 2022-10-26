@@ -77,6 +77,8 @@
     niv
     rxvt_unicode
     xclip
+    # TODO: this should probably be in home-manager.nix but I can't figure how to make nix install it in the correct path for the wsl to pick it up
+    kitty-launcher
 
     # For hypervisors that support auto-resizing, this script forces it.
     # I've noticed not everyone listens to the udev events so this is a hack.

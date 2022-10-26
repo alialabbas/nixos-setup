@@ -23,6 +23,25 @@ let sources = import ../../nix/sources.nix; in {
     pkgs.tree
     pkgs.watch
     pkgs.zathura
+    pkgs.dotnet-sdk
+    pkgs.yq
+    pkgs.kind
+    pkgs.kubectl
+    pkgs.kubernetes-helm
+    pkgs.glab
+    pkgs.google-cloud-sdk
+    pkgs.go-task
+    pkgs.conftest
+
+    # overlays helper scripts from ../../overlays/k8-helpers.nix
+    pkgs.kconfig
+    pkgs.kforward
+    pkgs.klogs
+    pkgs.knamespace
+    pkgs.krepl
+    pkgs.kexec
+    pkgs.hreleases
+    pkgs.hdelns
   ];
 
   #---------------------------------------------------------------------
@@ -93,7 +112,7 @@ let sources = import ../../nix/sources.nix; in {
   };
 
   programs.fish = {
-    enable = true;
+    enable = false;
     interactiveShellInit = lib.strings.concatStrings (lib.strings.intersperse "\n" [
       "source ${sources.theme-bobthefish}/functions/fish_prompt.fish"
       "source ${sources.theme-bobthefish}/functions/fish_right_prompt.fish"
@@ -234,6 +253,17 @@ let sources = import ../../nix/sources.nix; in {
     ];
 
     extraConfig = (import ./vim-config.nix) { inherit sources; };
+  };
+
+  programs.fzf = {
+      enable = true;
+      enableBashIntegration = true;
+      tmux.enableShellIntegration = true;
+  };
+
+  programs.starship = {
+    enable = true;
+    enableBashIntegration = true;
   };
 
   services.gpg-agent = {
