@@ -1,14 +1,64 @@
+" Basic Options
+set autoread              " Reload files that have not been modified
+set backspace=2           " Makes backspace behave like you'd expect
+set colorcolumn=80        " Highlight 80 character limit
+set hidden                " Allow buffers to be backgrounded without being saved
+set laststatus=2          " Always show the status bar
+set list                  " Show invisible characters
+set listchars=tab:›\ ,eol:¬,trail:⋅ "Set the characters for the invisibles
+set number
+set ruler                 " Show the line number and column in the status bar
+set t_Co=256              " Use 256 colors
+set scrolloff=999         " Keep the cursor centered in the screen
+set showmatch             " Highlight matching braces
+set showmode              " Show the current mode on the open buffer
+set splitbelow            " Splits show up below by default
+set splitright            " Splits go to the right by default
+set title                 " Set the title for gvim
+syntax on                 " Enable filetype detection by syntax
+
+" Backup settings
+execute "set directory=~/.vim/swap"
+execute "set backupdir=~/.vim/backup"
+execute "set undodir=~/.vim/undo"
+set backup
+set undofile
+set writebackup
+
+" Search settings
+set hlsearch   " Highlight results
+set ignorecase " Ignore casing of searches
+set incsearch  " Start showing results as you type
+set smartcase  " Be smart about case sensitivity when searching
+
+" Tab settings
+set expandtab     " Expand tabs to the proper type and size
+set tabstop=4     " Tabs width in spaces
+set softtabstop=4 " Soft tab width in spaces
+set shiftwidth=4  " Amount of spaces when shifting
+set autoindent 	  " Autoindent new lines
+
+" Tabs
+nnoremap <C-t> :tabnew<CR>
+nnoremap <C-c> :tabclose<CR>
+nnoremap <C-[> :tabprevious<CR>
+nnoremap <C-]> :tabnext<CR>
+
+""" AutoCommands
+" Clear whitespace at the end of lines automatically
+autocmd BufWritePre * :%s/\s\+$//e
+
 " make vim follow the terminal true color
 " https://github.com/sonph/onehalf/tree/master/vim#true-colors
 if exists('+termguicolors')
   " fix colorscheme with modern terminal
-  let g:terminal_ansi_colors = ['#383a42', '#e45649', '#50a14f', '#c18401', '#0184bc', '#a626a4', '#0997b3', '#fafafa', '#a0a1a7', '#fafafa', '#d4d4d4', '#e5e5e5', '#f0f0f0', '#f0f0f0', '#bfceff', '#f0f0f0']
+  let g:terminal_ansi_colors = [
+        \'#383a42', '#e45649', '#50a14f', '#c18401', '#0184bc',
+        \'#a626a4', '#0997b3', '#fafafa', '#a0a1a7', '#fafafa',
+        \'#d4d4d4', '#e5e5e5', '#f0f0f0', '#f0f0f0', '#bfceff', '#f0f0f0' ]
   let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-
   let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
-
   set termguicolors
-
 endif
 
 colorscheme onehalfdark
@@ -50,13 +100,13 @@ endfunction
 
 
 augroup lsp_install
-	au!
-	autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+    au!
+    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
 augroup END
 
 
 " Omnisharp setings, TODO: move these to a proper plugin that I build along
-" with setting compiler 
+" with setting compiler
 let g:OmniSharp_server_use_net6 = 1
 let g:OmniSharp_log_dir = '~/.local/share'
 let g:OmniSharp_server_path = '/etc/profiles/per-user/alialabbas/bin/omnisharp' " Consider writing this with Nix to make the write subtitute instead of hardcoding it here
@@ -77,8 +127,6 @@ nnoremap <silent> <leader>fg :Rg<CR>
 nnoremap <silent> <leader>fb :Buffers<CR>
 
 " GitGutter
-nmap <leader>ghp <plug>(GitGutterPreviewHunk)
-
 function! GitStatus()
   let [a,m,r] = GitGutterGetHunkSummary()
   return printf('+%d ~%d -%d', a, m, r)

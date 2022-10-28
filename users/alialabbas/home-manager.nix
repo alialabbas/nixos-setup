@@ -175,20 +175,24 @@ let sources = import ../../nix/sources.nix; in {
   programs.tmux = {
     enable = true;
     terminal = "xterm-256color";
-    shortcut = "l";
     secureSocket = false;
+    plugins = with pkgs.tmuxPlugins; [
+      sidebar
+      pain-control
+      {
+        plugin = dracula;
+        extraConfig = ''
+          set -g @dracula-show-powerline true
+          set -g @dracula-plugins "cpu-usage ram-usage weather time"
+          set -g @dracula-show-fahrenheit false
+        '';
+      }
+    ];
 
     extraConfig = ''
       set -ga terminal-overrides ",*256col*:Tc"
-
-      set -g @dracula-show-battery false
-      set -g @dracula-show-network false
-      set -g @dracula-show-weather false
-
+      set -g @dracula-show-fahrenheit false
       bind -n C-k send-keys "clear"\; send-keys "Enter"
-
-      run-shell ${sources.tmux-pain-control}/pain_control.tmux
-      run-shell ${sources.tmux-dracula}/dracula.tmux
     '';
   };
 
