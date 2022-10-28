@@ -168,6 +168,8 @@ let sources = import ../../nix/sources.nix; in {
       github.user = "alialabbas";
       push.default = "tracking";
       init.defaultBranch = "main";
+      diff.tool = "vimdiff";
+      difftool.prompt = false;
     };
     ignores = [ "*~" "*.swp" "result" "bin/" "obj/" ];
   };
