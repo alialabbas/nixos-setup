@@ -2,7 +2,6 @@
 final: super:
 
 {
-
   customVim = with final; {
     vim-misc = vimUtils.buildVimPlugin {
       name = "vim-misc";
@@ -63,7 +62,24 @@ final: super:
         sha256 =  "1qzil8rwpdzf64gq63ds0cf509ldam77l3fz02g1mia5dry75r02";
       };
     };
+    omnisharp-vim = vimUtils.buildVimPlugin {
+      name = "omnisharp-vim";
+      src = fetchFromGitHub {
+          owner = "OmniSharp";
+          repo = "omnisharp-vim";
+          rev = "c065733980428672e1aa7dbb3dd21c9b54bd9460";
+          sha256 = "uk1tCcVXZSgZoQ8VQqk0ido6GMLlsk3itD/mMkreTwI=";
+      };
+    };
+    vim-lsp-settings = vimUtils.buildVimPluginFrom2Nix {
+      name = "vim-lsp-settings";
+      src = fetchFromGitHub {
+        owner = "mattn";
+        repo = "vim-lsp-settings";
+        rev = "75bd847e1ad342d77c715601c68c27be31bae257";
+        sha256 = "RRLmbKnPoz4iAIYner8q+rKBgow7MVSrItIfJW/+LXA=";
+    };
   };
-
+};
 }
 

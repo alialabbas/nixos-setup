@@ -1,0 +1,93 @@
+" make vim follow the terminal true color
+" https://github.com/sonph/onehalf/tree/master/vim#true-colors
+if exists('+termguicolors')
+  " fix colorscheme with modern terminal
+  let g:terminal_ansi_colors = ['#383a42', '#e45649', '#50a14f', '#c18401', '#0184bc', '#a626a4', '#0997b3', '#fafafa', '#a0a1a7', '#fafafa', '#d4d4d4', '#e5e5e5', '#f0f0f0', '#f0f0f0', '#bfceff', '#f0f0f0']
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+
+  set termguicolors
+
+endif
+
+colorscheme onehalfdark
+"
+" nicer Airline viewer
+let g:airline_powerline_fonts = 1
+
+let g:lsp_log_file = expand('~/vim-lsp.log') " TODO: hide this in a temp hidden dir
+
+if executable('gopls')
+    au User lsp_setup call lsp#register_server({
+        \ 'name': 'gopls',
+        \ 'cmd': {server_info->['gopls', '-remote=auto']},
+        \ 'allowlist': ['go'],
+        \ })
+    autocmd BufWritePre *.go LspDocumentFormatSync
+endif
+
+
+function! s:on_lsp_buffer_enabled() abort
+    setlocal omnifunc=lsp#complete
+    setlocal signcolumn=yes
+    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+    nmap <buffer> gd <plug>(lsp-definition)
+    nmap <buffer> gs <plug>(lsp-document-symbol-search)
+    nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
+    nmap <buffer> gr <plug>(lsp-references)
+    nmap <buffer> gi <plug>(lsp-implementation)
+    nmap <buffer> gt <plug>(lsp-type-definition)
+    nmap <buffer> <leader>rn <plug>(lsp-rename)
+    nmap <buffer> [g <plug>(lsp-previous-diagnostic)
+    nmap <buffer> ]g <plug>(lsp-next-diagnostic)
+    nmap <buffer> K <plug>(lsp-hover)
+    nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
+    nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
+    let g:lsp_format_sync_timeout = 1000
+    autocmd! BufWritePre *.rs,*.go call execute('LspDocumentFormatSync')
+endfunction
+
+
+augroup lsp_install
+	au!
+	autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END
+
+
+" Omnisharp setings, TODO: move these to a proper plugin that I build along
+" with setting compiler 
+let g:OmniSharp_server_use_net6 = 1
+let g:OmniSharp_log_dir = '~/.local/share'
+let g:OmniSharp_server_path = '/etc/profiles/per-user/alialabbas/bin/omnisharp' " Consider writing this with Nix to make the write subtitute instead of hardcoding it here
+
+autocmd FileType cs nnoremap gd :OmniSharpGotoDefinition<CR>
+autocmd FileType cs nnoremap gi :OmniSharpFindImplementations<CR>
+autocmd FileType cs nnoremap gs :OmniSharpFindSymbol<CR>
+autocmd FileType cs nnoremap gu :OmniSharpFindUsages<CR>
+" TODO: consider making this a side window that open to the left or right and
+" toggable
+autocmd FileType cs nnoremap gm :OmniSharpFindMembers<CR>
+autocmd FileType cs nnoremap gh :OmniSharpDocumentation<CR>
+let g:OmniSharp_highlighting = 0
+
+" FZF mappings
+nnoremap <silent> <leader>ff :Files<CR>
+nnoremap <silent> <leader>fg :Rg<CR>
+nnoremap <silent> <leader>fb :Buffers<CR>
+
+" GitGutter
+nmap <leader>ghp <plug>(GitGutterPreviewHunk)
+
+function! GitStatus()
+  let [a,m,r] = GitGutterGetHunkSummary()
+  return printf('+%d ~%d -%d', a, m, r)
+endfunction
+set statusline+=%{GitStatus()}
+
+autocmd BufWritePost * GitGutter
+
+" AsyncComplete
+inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"

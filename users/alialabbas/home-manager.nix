@@ -32,6 +32,9 @@ let sources = import ../../nix/sources.nix; in {
     pkgs.google-cloud-sdk
     pkgs.go-task
     pkgs.conftest
+    pkgs.go
+    pkgs.gopls
+    pkgs.omnisharp-roslyn
 
     # overlays helper scripts from ../../overlays/k8-helpers.nix
     pkgs.kconfig
@@ -255,6 +258,27 @@ let sources = import ../../nix/sources.nix; in {
     ];
 
     extraConfig = (import ./vim-config.nix) { inherit sources; };
+  };
+
+  programs.vim = {
+    enable = true;
+    plugins = with pkgs; [
+      vimPlugins.vim-fugitive
+      vimPlugins.vimspector
+      customVim.omnisharp-vim # TODO: Figure out why Omnisharp won't work with vim-lsp
+      vimPlugins.vim-lsp
+      vimPlugins.fzf-vim
+      vimPlugins.vim-airline
+      vimPlugins.vim-airline-themes
+      vimPlugins.ale
+      vimPlugins.asyncomplete-vim
+      vimPlugins.vim-gitgutter
+      vimPlugins.onehalf
+      vimPlugins.zenburn
+      vimPlugins.vim-nixhash
+      vimPlugins.vim-nix
+    ];
+    extraConfig = builtins.readFile ./vimrc;
   };
 
   programs.fzf = {
