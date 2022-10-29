@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 
-let sources = import ../../nix/sources.nix; in {
+{
   xdg.enable = true;
 
   #---------------------------------------------------------------------
@@ -61,20 +61,10 @@ let sources = import ../../nix/sources.nix; in {
     MANPAGER = "sh -c 'col -bx | ${pkgs.bat}/bin/bat -l man -p'";
   };
 
-  home.file.".gdbinit".source = ./gdbinit;
   home.file.".inputrc".source = ./inputrc;
 
   xdg.configFile."i3/config".text = builtins.readFile ./i3;
   xdg.configFile."rofi/config.rasi".text = builtins.readFile ./rofi;
-
-  # tree-sitter parsers
-  xdg.configFile."nvim/parser/proto.so".source = "${pkgs.tree-sitter-proto}/parser";
-  xdg.configFile."nvim/queries/proto/folds.scm".source =
-    "${sources.tree-sitter-proto}/queries/folds.scm";
-  xdg.configFile."nvim/queries/proto/highlights.scm".source =
-    "${sources.tree-sitter-proto}/queries/highlights.scm";
-  xdg.configFile."nvim/queries/proto/textobjects.scm".source =
-    ./textobjects.scm;
 
   #---------------------------------------------------------------------
   # Programs
@@ -113,43 +103,6 @@ let sources = import ../../nix/sources.nix; in {
         exact = ["$HOME/.envrc"];
       };
     };
-  };
-
-  programs.fish = {
-    enable = false;
-    interactiveShellInit = lib.strings.concatStrings (lib.strings.intersperse "\n" [
-      "source ${sources.theme-bobthefish}/functions/fish_prompt.fish"
-      "source ${sources.theme-bobthefish}/functions/fish_right_prompt.fish"
-      "source ${sources.theme-bobthefish}/functions/fish_title.fish"
-      (builtins.readFile ./config.fish)
-      "set -g SHELL ${pkgs.fish}/bin/fish"
-    ]);
-
-    shellAliases = {
-      ga = "git add";
-      gc = "git commit";
-      gco = "git checkout";
-      gcp = "git cherry-pick";
-      gdiff = "git diff";
-      gl = "git prettylog";
-      gp = "git push";
-      gs = "git status";
-      gt = "git tag";
-
-      # Two decades of using a Mac has made this such a strong memory
-      # that I'm just going to keep it consistent.
-      pbcopy = "xclip";
-      pbpaste = "xclip -o";
-    };
-
-    plugins = map (n: {
-      name = n;
-      src  = sources.${n};
-    }) [
-      "fish-fzf"
-      "fish-foreign-env"
-      "theme-bobthefish"
-    ];
   };
 
   programs.git = {
@@ -235,35 +188,6 @@ let sources = import ../../nix/sources.nix; in {
       "wireless _first_".enable = false;
       "battery all".enable = false;
     };
-  };
-
-  programs.neovim = {
-    enable = true;
-    package = pkgs.neovim-nightly;
-
-    plugins = with pkgs; [
-      vimPlugins.vim-fish
-      vimPlugins.vim-fugitive
-      vimPlugins.pgsql-vim
-      vimPlugins.nvim-lspconfig
-      vimPlugins.plenary-nvim # required for telescope
-      vimPlugins.telescope-nvim
-      vimPlugins.nvim-treesitter
-      vimPlugins.nvim-treesitter-textobjects
-      vimPlugins.vim-airline
-      vimPlugins.vim-airline-themes
-      vimPlugins.vim-gitgutter
-      vimPlugins.vim-markdown
-      vimPlugins.vim-nix
-
-      customVim.AfterColors
-      customVim.vim-misc
-      customVim.vim-nord
-      customVim.nvim-comment
-      customVim.nvim-treesitter-playground
-    ];
-
-    extraConfig = (import ./vim-config.nix) { inherit sources; };
   };
 
   programs.vim = {

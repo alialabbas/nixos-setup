@@ -54,7 +54,6 @@
         kitty = inputs.nixpkgs-unstable.legacyPackages.${prev.system}.kitty;
       })
       # Think of adding a centralized way to apply common overlays
-      (import ./users/alialabbas/vim.nix)
       (import ./overlays/vim.nix)
       (import ./overlays/k8-helpers.nix)
       (import ./overlays/launchers.nix)

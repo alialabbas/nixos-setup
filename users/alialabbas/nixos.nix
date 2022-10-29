@@ -14,8 +14,4 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICZaz65Zac9ETYx7Z1NlHtZDNLB/9DP08mUHHuUSiNOR alina@Gaming-Desktop"
     ];
   };
-
-  nixpkgs.overlays = [
-    (import ./vim.nix)
-  ];
 }
