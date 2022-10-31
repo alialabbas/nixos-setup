@@ -110,6 +110,11 @@ augroup END
 let g:OmniSharp_server_use_net6 = 1
 let g:OmniSharp_log_dir = '~/.local/share'
 let g:OmniSharp_server_path = '/etc/profiles/per-user/alialabbas/bin/omnisharp' " Consider writing this with Nix to make the write subtitute instead of hardcoding it here
+let g:OmniSharp_popup_options = {
+    \ 'highlight': 'Normal',
+    \ 'padding': [1],
+    \ 'border': [1]
+    \}
 
 autocmd FileType cs nnoremap gd :OmniSharpGotoDefinition<CR>
 autocmd FileType cs nnoremap gi :OmniSharpFindImplementations<CR>
