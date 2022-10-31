@@ -44,6 +44,13 @@ nnoremap <C-c> :tabclose<CR>
 nnoremap <C-[> :tabprevious<CR>
 nnoremap <C-]> :tabnext<CR>
 
+" Force write files that requires sudo access
+cmap w!! %!sudo tee > /dev/null %
+
+" Close all buffers except the current active one
+nmap <leader>ca :%bd <bar> e# <bar> bd# <CR>
+
+
 """ AutoCommands
 " Clear whitespace at the end of lines automatically
 autocmd BufWritePre * :%s/\s\+$//e
