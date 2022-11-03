@@ -50,6 +50,12 @@ cmap w!! %!sudo tee > /dev/null %
 " Close all buffers except the current active one
 nmap <leader>ca :%bd <bar> e# <bar> bd# <CR>
 
+" Shortcut to yanking to the system clipboard
+map <leader>y "+y
+map <leader>p "+p
+
+" Get rid of search highlights
+noremap <silent><leader>/ :nohlsearch<cr>
 
 """ AutoCommands
 " Clear whitespace at the end of lines automatically
