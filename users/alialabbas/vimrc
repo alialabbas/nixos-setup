@@ -90,6 +90,20 @@ if executable('gopls')
     autocmd BufWritePre *.go LspDocumentFormatSync
 endif
 
+if executable('vim-language-server')
+  augroup LspVim
+    autocmd!
+    autocmd User lsp_setup call lsp#register_server({
+        \ 'name': 'vim-language-server',
+        \ 'cmd': {server_info->['vim-language-server', '--stdio']},
+        \ 'whitelist': ['vim'],
+        \ 'initialization_options': {
+        \   'vimruntime': $VIMRUNTIME,
+        \   'runtimepath': &rtp,
+        \ }})
+  augroup END
+endif
+
 
 function! s:on_lsp_buffer_enabled() abort
     setlocal omnifunc=lsp#complete
@@ -128,6 +142,7 @@ let g:OmniSharp_popup_options = {
     \ 'padding': [1],
     \ 'border': [1]
     \}
+let g:OmniSharp_loglevel = 'info'
 
 autocmd FileType cs nnoremap gd :OmniSharpGotoDefinition<CR>
 autocmd FileType cs nnoremap gi :OmniSharpFindImplementations<CR>
@@ -153,7 +168,63 @@ set statusline+=%{GitStatus()}
 
 autocmd BufWritePost * GitGutter
 
+" Make GitGutter use popups instead of quickfix
+let g:gitgutter_preview_win_floating = 1
+let g:gitgutter_floating_window_options = {
+            \ 'highlight': 'Normal',
+            \ 'padding': [1],
+            \ 'border': [1],
+            \ 'mapping': v:true,
+            \ 'scrollbar': v:true,
+            \ 'moved': [0, 999]
+            \}
+
 " AsyncComplete
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
+
+" Vimspector
+let g:vimspector_enable_mappings = 'HUMAN'
+let g:vimspector_adapters = {
+                \  'adapters': {
+                \    'netcoredbg': {
+                \      'attach': {
+                \        'pidProperty': 'processId',
+                \        'pidSelect': 'ask'
+                \      },
+                \      'command': [
+                \        'netcoredbg',
+                \        '--interpreter=vscode',
+                \        '--engineLogging=${workspaceRoot}/netcoredbg.engine.log',
+                \        '--log=${workspaceRoot}/netcoredbg.log'
+                \      ],
+                \      'configuration': {
+                \        'cwd': '${workspaceRoot}'
+                \      },
+                \      'name': 'netcoredbg'
+                \    }
+                \  }
+                \}
+" Ideally you would read the csproj to find the assembly
+" From their, we can either find the assemblby name from the xml
+" Or default project name
+function GetDotnetDLL() abort
+    let dlls = []
+    let host = OmniSharp#GetHost()
+    for project in host.job.projects
+        call add(dlls, project.target)
+    endfor
+    let choosen_target = fzf#run({'source': dlls})
+    call vimspector#LaunchWithConfigurations({
+                \    'launch': {
+                \      'adapter': 'netcoredbg',
+                \      'configuration': {
+                \        'request': 'launch',
+                \        'program': choosen_target[0],
+                \        'args': [],
+                \      }
+                \    }
+                \})
+endfunction
+

@@ -36,6 +36,8 @@
     pkgs.gopls
     pkgs.omnisharp-roslyn
 
+    pkgs.netcoredbg
+    pkgs.nodePackages.vim-language-server
     # overlays helper scripts from ../../overlays/k8-helpers.nix
     pkgs.kconfig
     pkgs.kforward
@@ -194,8 +196,9 @@
     enable = true;
     plugins = with pkgs; [
       vimPlugins.vim-fugitive
-      vimPlugins.vimspector
+     # vimPlugins.vimspector
       customVim.omnisharp-vim # TODO: Figure out why Omnisharp won't work with vim-lsp
+      customVim.vimspector
       vimPlugins.vim-lsp
       vimPlugins.fzf-vim
       vimPlugins.vim-airline

@@ -62,13 +62,14 @@ final: super:
         sha256 =  "1qzil8rwpdzf64gq63ds0cf509ldam77l3fz02g1mia5dry75r02";
       };
     };
+    # Pinned to an older version due to a bug with OmniSharpDebugProject not working anymore
     omnisharp-vim = vimUtils.buildVimPlugin {
       name = "omnisharp-vim";
       src = fetchFromGitHub {
           owner = "OmniSharp";
           repo = "omnisharp-vim";
-          rev = "c065733980428672e1aa7dbb3dd21c9b54bd9460";
-          sha256 = "uk1tCcVXZSgZoQ8VQqk0ido6GMLlsk3itD/mMkreTwI=";
+          rev = "2b664e3d33b3174ca30c05b173e97331b74ec075";
+          sha256 = "UJhV9rbefNWqbc3AB+jW/+zNx7mhcURGNN6lg4rvS9g=";
       };
     };
     vim-lsp-settings = vimUtils.buildVimPluginFrom2Nix {
@@ -79,6 +80,29 @@ final: super:
         rev = "75bd847e1ad342d77c715601c68c27be31bae257";
         sha256 = "RRLmbKnPoz4iAIYner8q+rKBgow7MVSrItIfJW/+LXA=";
     };
+  };
+  # building custom vimpsector instead of the one in nixpkgs to allow me to add gadgets to the default
+  # vimspector path... Not sure if it is a bug but when vimspector launch without configuration it can only
+  # use the defaults adapter  defined in .gadgets.json and I have to tell it where to find them in the next store
+    vimspector = vimUtils.buildVimPluginFrom2Nix rec {
+      gadgetFile = pkgs.writeTextFile { name = ".gadgets.json"; text = builtins.readFile ./gadgets.json; };
+      netcoredbg = pkgs.netcoredbg;
+      pname = "vimspector";
+      version = "2022-05-01";
+      src = fetchFromGitHub {
+        owner = "puremourning";
+        repo = "vimspector";
+        rev = "960f0444d21ebb20303e1796e4b478df042c3bd3";
+        sha256 = "0sx2awi2b22j9wdyi8m1k261qlfj19i2xs93g5lb24lfb53rarmi";
+        fetchSubmodules = true;
+      };
+      postInstall = ''
+          mkdir $out/gadgets
+          mkdir $out/gadgets/linux
+          mkdir $out/gadgets/linux/netcoredbg
+          ln -s ${netcoredbg}/bin/netcoredbg $out/gadgets/linux/netcoredbg/netcoredbg
+          ln -s ${gadgetFile} $out/gadgets/linux/.gadgets.json
+      '';
   };
 };
 }

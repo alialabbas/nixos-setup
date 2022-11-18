@@ -1,0 +1,22 @@
+{
+  "adapters": {
+    "multi-session": {
+      "host": "${host}",
+      "port": "${port}"
+    },
+    "netcoredbg": {
+      "attach": {
+        "pidProperty": "processId",
+        "pidSelect": "ask"
+      },
+      "command": [
+        "${gadgetDir}/netcoredbg/netcoredbg",
+        "--interpreter=vscode"
+      ],
+      "configuration": {
+        "cwd": "${workspaceRoot}"
+      },
+      "name": "netcoredbg"
+    }
+  }
+}
