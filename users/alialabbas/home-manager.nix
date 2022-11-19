@@ -35,6 +35,8 @@
     pkgs.go
     pkgs.gopls
     pkgs.omnisharp-roslyn
+    pkgs.python39Packages.python-lsp-server
+    pkgs.python39
 
     pkgs.netcoredbg
     pkgs.nodePackages.vim-language-server
