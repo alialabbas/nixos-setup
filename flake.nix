@@ -47,6 +47,7 @@
       user = "alialabbas";
       email = "ali.n.alabbas@gmail.com";
       fullname = "Ali Alabbas";
+      extraPkgs = [ nixpkgs.legacyPackages.x86_64-linux.nodePackages.vim-language-server ];
     };
   in
   {

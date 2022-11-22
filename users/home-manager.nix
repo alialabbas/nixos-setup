@@ -25,9 +25,8 @@
     pkgs.omnisharp-roslyn
     pkgs.python39Packages.python-lsp-server
     pkgs.python39
-
     pkgs.netcoredbg
-    pkgs.nodePackages.vim-language-server
+
     # overlays helper scripts from ../../overlays/k8-helpers.nix
     pkgs.kconfig
     pkgs.kforward
