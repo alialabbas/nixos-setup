@@ -1,4 +1,4 @@
-{ config, lib, pkgs, email, fullname, extraPkgs,... }:
+{ config, lib, pkgs, email, fullname, extraPkgs, extraBashrc, ... }:
 
 {
   xdg.enable = true;
@@ -57,7 +57,7 @@
     enable = true;
     shellOptions = [];
     historyControl = [ "ignoredups" "ignorespace" ];
-    initExtra = builtins.readFile ./bashrc;
+    initExtra = builtins.readFile ./bashrc + extraBashrc;
 
     shellAliases = {
       ga = "git add";

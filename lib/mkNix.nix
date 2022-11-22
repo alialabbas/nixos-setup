@@ -1,6 +1,6 @@
 # A function that I use and expose in my flake to allow me to configure a base nixosSystem that has pre-baked modules
 # that I want to be used all the time and allow me to extend this base further
-{ name, hostname, modules ? [], systemOverlays ? [] }: { nixpkgs, home-manager, system, user, overlays, email, fullname, extraMods ? [], extraPkgs ? [] }:
+{ name, hostname, modules ? [], systemOverlays ? [] }: { nixpkgs, home-manager, system, user, overlays, email, fullname, extraMods ? [], extraPkgs ? [], extraBashrc ? ''''}:
 
 nixpkgs.lib.nixosSystem {
   inherit system;
@@ -22,6 +22,7 @@ nixpkgs.lib.nixosSystem {
         email = email;
         extraPkgs = extraPkgs;
         fullname = fullname;
+        extraBashrc = extraBashrc;
       };
     }
 
