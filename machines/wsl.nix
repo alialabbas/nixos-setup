@@ -1,22 +1,20 @@
-{ config, pkgs, ... }: {
-  # TODO: figure out how to make this work with vm-shared.nix
-  imports = [];
+{ config, pkgs, modulesPath, user, hostname, ... }:
 
-  networking.useDHCP = false;
+{
+  imports = [
+    "${modulesPath}/profiles/minimal.nix"
+    ./vm-shared.nix
+  ];
 
-  security.sudo.wheelNeedsPassword = false;
-
-
-  users.mutableUsers = false;
-
-  fonts = {
-    fontDir.enable = true;
-
-    fonts = [
-      pkgs.fira-code
-    ];
+  wsl = {
+    enable = true;
+    automountPath = "/mnt";
+    defaultUser = user;
+    startMenuLaunchers = true;
+    wslConf = {
+      network = {
+        hostname = hostname;
+      };
+    };
   };
-
-  networking.firewall.enable = false;
-
 }

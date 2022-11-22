@@ -1,7 +1,6 @@
-{ config, pkgs, lib, currentSystem, currentSystemName,... }:
+{ config, pkgs, lib, hostname, ... }:
 
 {
-  # use unstable nix so we can access flakes
   nix = {
     package = pkgs.nixUnstable;
     extraOptions = ''
@@ -11,30 +10,20 @@
     '';
    };
 
-  # We expect to run the VM on hidpi machines.
   hardware.video.hidpi.enable = true;
 
-  # Define your hostname.
-  networking.hostName = "dev";
+  networking.hostName = hostname;
 
-  # Set your time zone.
   time.timeZone = "America/Toronto";
 
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
   networking.useDHCP = false;
 
-  # Don't require password for sudo
   security.sudo.wheelNeedsPassword = false;
 
-  # Virtualization settings
   virtualisation.docker.enable = true;
 
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
-  # setup windowing environment
   services.xserver = {
     enable = true;
     layout = "us";
@@ -56,11 +45,8 @@
     };
   };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
   users.mutableUsers = false;
 
-  # Manage fonts. We pull these from a secret directory since most of these
-  # fonts require a purchase.
   fonts = {
     fontDir.enable = true;
 
@@ -69,39 +55,22 @@
     ];
   };
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
   environment.systemPackages = with pkgs; [
     gnumake
     killall
-    niv
     rxvt_unicode
     xclip
     # TODO: this should probably be in home-manager.nix but I can't figure how to make nix install it in the correct path for the wsl to pick it up
     kitty-launcher
-
-    # For hypervisors that support auto-resizing, this script forces it.
-    # I've noticed not everyone listens to the udev events so this is a hack.
-    (writeShellScriptBin "xrandr-auto" ''
-      xrandr --output Virtual-1 --auto
-    '')
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
-  # Enable the OpenSSH daemon.
   services.openssh.enable = true;
   services.openssh.passwordAuthentication = true;
   services.openssh.permitRootLogin = "no";
 
-  # This is windows specific, we want to try using xrdp to make rdp connection more dynamic
-  # and respect the resolution based on hyper-v
+
+  # This is workaround Hyper-V not support hi resolution monitors natively
+  # Couldn't figure out why hyperv sock won't connect correctly using HyperV but this works fine since I rarely need it
   services.xrdp.enable = true;
   services.xrdp.defaultWindowManager = "${pkgs.i3}/bin/i3";
 
@@ -113,9 +82,7 @@
   ];
 
 
-  # Only using avahi right now to make it easy to connect from Host's RDP
-  # without having to remember IP or run scripts to fetch IP address from
-  # Hypervisor
+  # make it easier to connect through RDP using hostname.local
   services.avahi = {
     enable = true;
     publish = {
@@ -125,8 +92,6 @@
     };
   };
 
-  # Disable the firewall since we're in a VM and we want to make it
-  # easy to visit stuff in here. We only use NAT networking anyways.
   networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default

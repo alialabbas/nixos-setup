@@ -1,12 +1,9 @@
-{ pkgs, ... }:
+{ pkgs, user,... }:
 
 {
-  # https://github.com/nix-community/home-manager/pull/2408
-  #environment.pathsToLink = [ "/share/fish" ];
-
-  users.users.alialabbas = {
+  users.users.${user} = {
     isNormalUser = true;
-    home = "/home/alialabbas";
+    home = "/home/" + user;
     extraGroups = [ "docker" "wheel" ];
     shell = pkgs.bash;
     hashedPassword = "$6$zApfI1uV39la2Kpa$HFEC4w/2tiQK8pCJ0HJyt9kVX6mbpi.BIhIRhi5YEiCSLcg6vFrI4AVH.Kt8d/XCUCMqBwg.1Bzzo1rIlPZQe/";

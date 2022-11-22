@@ -1,21 +1,13 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, email, fullname, extraPkgs,... }:
 
 {
   xdg.enable = true;
 
-  #---------------------------------------------------------------------
-  # Packages
-  #---------------------------------------------------------------------
-
-  # Packages I always want installed. Most packages I install using
-  # per-project flakes sourced with direnv and nix-shell, so this is
-  # not a huge list.
   home.packages = [
     pkgs.bat
     pkgs.fd
     pkgs.firefox
     pkgs.fzf
-    pkgs.git-crypt
     pkgs.htop
     pkgs.jq
     pkgs.ripgrep
@@ -28,10 +20,6 @@
     pkgs.kind
     pkgs.kubectl
     pkgs.kubernetes-helm
-    pkgs.glab
-    pkgs.google-cloud-sdk
-    pkgs.go-task
-    pkgs.conftest
     pkgs.go
     pkgs.gopls
     pkgs.omnisharp-roslyn
@@ -50,11 +38,7 @@
     pkgs.hreleases
     pkgs.hdelns
     pkgs.fzf-repl
-  ];
-
-  #---------------------------------------------------------------------
-  # Env vars and dotfiles
-  #---------------------------------------------------------------------
+  ] ++ extraPkgs;
 
   home.sessionVariables = {
     LANG = "en_US.UTF-8";
@@ -69,12 +53,6 @@
 
   xdg.configFile."i3/config".text = builtins.readFile ./i3;
   xdg.configFile."rofi/config.rasi".text = builtins.readFile ./rofi;
-
-  #---------------------------------------------------------------------
-  # Programs
-  #---------------------------------------------------------------------
-
-  programs.gpg.enable = true;
 
   programs.bash = {
     enable = true;
@@ -95,24 +73,10 @@
     };
   };
 
-  programs.direnv= {
-    enable = true;
-
-    config = {
-      whitelist = {
-        prefix= [
-          "$HOME/code"
-        ];
-
-        exact = ["$HOME/.envrc"];
-      };
-    };
-  };
-
   programs.git = {
     enable = true;
-    userName = "Ali Alabbas";
-    userEmail = "ali.n.alabbas@gmail.com";
+    userName = fullname;
+    userEmail = email;
     aliases = {
       prettylog = "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(r) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative";
       root = "rev-parse --show-toplevel";
@@ -120,9 +84,8 @@
     extraConfig = {
       branch.autosetuprebase = "always";
       color.ui = true;
-      core.askPass = ""; # needs to be empty to use terminal for ask pass
-      credential.helper = "store"; # want to make this more secure
-      github.user = "alialabbas";
+      core.askPass = "";
+      credential.helper = "store";
       push.default = "tracking";
       init.defaultBranch = "main";
       diff.tool = "vimdiff";
@@ -155,23 +118,6 @@
     '';
   };
 
-  programs.alacritty = {
-    enable = true;
-
-    settings = {
-      env.TERM = "xterm-256color";
-
-      key_bindings = [
-        { key = "K"; mods = "Command"; chars = "ClearHistory"; }
-        { key = "V"; mods = "Command"; action = "Paste"; }
-        { key = "C"; mods = "Command"; action = "Copy"; }
-        { key = "Key0"; mods = "Command"; action = "ResetFontSize"; }
-        { key = "Equals"; mods = "Command"; action = "IncreaseFontSize"; }
-        { key = "Subtract"; mods = "Command"; action = "DecreaseFontSize"; }
-      ];
-    };
-  };
-
   programs.kitty = {
     enable = true;
     extraConfig = builtins.readFile ./kitty;
@@ -198,7 +144,6 @@
     enable = true;
     plugins = with pkgs; [
       vimPlugins.vim-fugitive
-     # vimPlugins.vimspector
       customVim.omnisharp-vim # TODO: Figure out why Omnisharp won't work with vim-lsp
       customVim.vimspector
       vimPlugins.vim-lsp
@@ -225,15 +170,6 @@
   programs.starship = {
     enable = true;
     enableBashIntegration = true;
-  };
-
-  services.gpg-agent = {
-    enable = true;
-    pinentryFlavor = "tty";
-
-    # cache the keys forever so we don't get asked for a password
-    defaultCacheTtl = 31536000;
-    maxCacheTtl = 31536000;
   };
 
   xresources.extraConfig = builtins.readFile ./Xresources;
