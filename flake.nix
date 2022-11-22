@@ -67,7 +67,7 @@
         pkgs = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
         modules = [
             { nixpkgs.overlays = overlays; }
-            ./users/alialabbas/home-manager.nix
+            ./users/home-manager.nix
             ./home.nix
         ];
         extraSpecialArgs = {

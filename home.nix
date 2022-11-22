@@ -1,4 +1,4 @@
-{ config, pkgs, user ? "alialabbas",... }:
+{ config, pkgs, user,... }:
 
 {
   home.username = user;

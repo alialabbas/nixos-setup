@@ -12,11 +12,11 @@ nixpkgs.lib.nixosSystem {
     # to just set up the modules
     ../hardware/${name}.nix
     ../machines/${name}.nix
-    ../users/${user}/nixos.nix
+    ../users/nixos.nix
     home-manager.nixosModules.home-manager {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
-      home-manager.users.alialabbas = import ../users/${user}/home-manager.nix;
+      home-manager.users.${user} = import ../users/home-manager.nix;
       home-manager.extraSpecialArgs = {
         user = user;
         email = email;
