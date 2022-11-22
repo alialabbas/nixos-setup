@@ -42,12 +42,17 @@
 
     baseWSL = mkNix { name = "wsl"; hostname = "wsl"; modules = [ wsl-modules.wsl ]; systemOverlays = [ (import ./overlays/wsl.nix) ] ++ overlays; };
 
+    pkgs = nixpkgs.legacyPackages.x86_64-linux;
     commonInputs = {
       system = "x86_64-linux";
       user = "alialabbas";
       email = "ali.n.alabbas@gmail.com";
       fullname = "Ali Alabbas";
-      extraPkgs = [ nixpkgs.legacyPackages.x86_64-linux.nodePackages.vim-language-server ];
+      extraPkgs = [
+        pkgs.nodePackages.vim-language-server
+        pkgs.python39Packages.python-lsp-server
+        pkgs.python39
+        ];
     };
   in
   {
@@ -76,6 +81,7 @@
           extraPkgs = [];
           email = "ali.n.alabbas@gmail.com";
           fullname = "Ali Alabbas";
+          extraBashrc = '''';
         };
     };
   };
