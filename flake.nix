@@ -22,6 +22,7 @@
   outputs = { self, nixpkgs, home-manager, nixos-wsl, ... }@inputs:
   let
     mkNix = import ./lib/mkNix.nix;
+    mkHome = import ./lib/mkHome.nix;
 
     overlays = [
       # Think of adding a centralized way to apply common overlays
@@ -36,6 +37,7 @@
 
     baseWSL = mkNix { name = "wsl"; hostname = "wsl"; modules = [ wsl-modules.wsl ]; systemOverlays = [ (import ./overlays/wsl.nix) ] ++ overlays; };
 
+    baseHome = mkHome { inherit nixpkgs home-manager overlays; };
     pkgs = nixpkgs.legacyPackages.x86_64-linux;
     commonInputs = {
       system = "x86_64-linux";
@@ -53,6 +55,7 @@
   {
 
     baseWSL = baseWSL;
+    baseHome = baseHome;
 
     nixosConfigurations.vm-intel = mkNix { name = "vm-intel"; hostname = "dev"; } ({
       inherit nixpkgs home-manager overlays;
@@ -63,21 +66,7 @@
       overlays = [];
     } // commonInputs);
 
-    # TODO: use home-manager and nixkpgs once 22.11 is released
-    homeConfigurations.home-only = home-manager.lib.homeManagerConfiguration {
-        pkgs = nixpkgs.legacyPackages.x86_64-linux;
-        modules = [
-            { nixpkgs.overlays = overlays; }
-            ./users/home-manager.nix
-            ./home.nix
-        ];
-        extraSpecialArgs = {
-          user = "alialabbas";
-          extraPkgs = [];
-          email = "ali.n.alabbas@gmail.com";
-          fullname = "Ali Alabbas";
-          extraBashrc = '''';
-        };
-    };
+    homeConfigurations.home-only = baseHome ({} // (builtins.removeAttrs commonInputs ["system"]));
+
   };
 }
