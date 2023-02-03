@@ -2,7 +2,6 @@
 
 {
   imports = [
-    "${modulesPath}/profiles/minimal.nix"
     ./vm-shared.nix
   ];
 
@@ -11,6 +10,7 @@
     automountPath = "/mnt";
     defaultUser = user;
     startMenuLaunchers = true;
+    nativeSystemd = true;
     wslConf = {
       network = {
         hostname = hostname;

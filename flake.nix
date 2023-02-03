@@ -3,27 +3,20 @@
 
   inputs = {
 
-    nixpkgs.url = "github:nixos/nixpkgs/release-22.05";
-
-    # TODO: remove this once Nix 22.11 is released, only used with Home-Manager master
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/release-22.11";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-22.05";
+      url = "github:nix-community/home-manager/release-22.11";
 
       # We want home-manager to use the same set of nixpkgs as our system.
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # we include home-manager unstable because it provides a nicer way
-    # to configure a flake for home only
-    home-manager-unstable = {
-        url = "github:nix-community/home-manager";
-        inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-
     # wsl modules
-    nixos-wsl.url = "github:nix-community/NixOS-WSL/22.05-5c211b47";
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, nixos-wsl, ... }@inputs:
@@ -36,6 +29,7 @@
       (import ./overlays/launchers.nix)
       (import ./overlays/k8-helpers.nix)
       (import ./overlays/fzf.nix)
+      (import ./overlays/git-helpers.nix)
     ];
 
     wsl-modules = nixos-wsl.nixosModules;
@@ -50,6 +44,7 @@
       fullname = "Ali Alabbas";
       extraPkgs = [
         pkgs.nodePackages.vim-language-server
+        pkgs.nodePackages.yaml-language-server
         pkgs.python39Packages.python-lsp-server
         pkgs.python39
         ];
@@ -69,8 +64,8 @@
     } // commonInputs);
 
     # TODO: use home-manager and nixkpgs once 22.11 is released
-    homeConfigurations.home-only = inputs.home-manager-unstable.lib.homeManagerConfiguration {
-        pkgs = inputs.nixpkgs-unstable.legacyPackages.x86_64-linux;
+    homeConfigurations.home-only = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
         modules = [
             { nixpkgs.overlays = overlays; }
             ./users/home-manager.nix

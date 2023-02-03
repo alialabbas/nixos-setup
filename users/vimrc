@@ -38,6 +38,10 @@ set softtabstop=4 " Soft tab width in spaces
 set shiftwidth=4  " Amount of spaces when shifting
 set autoindent 	  " Autoindent new lines
 
+" AutoComplete options
+set wildmenu
+set wop=pum
+
 " Tabs
 nnoremap <C-t> :tabnew<CR>
 nnoremap <C-c> :tabclose<CR>
@@ -75,45 +79,40 @@ if exists('+termguicolors')
 endif
 
 colorscheme onehalfdark
+" https://github.com/sonph/onehalf/pull/106/files
+hi Pmenu guifg=#dcdfe4 ctermfg=188
+hi Pmenu gui=NONE cterm=NONE
+hi Pmenu guibg=#313640 ctermbg=237
+
 "
 " nicer Airline viewer
 let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:bufferline_echo = 0
+let g:airline_powerline_fonts = 1
 
+" GitGutter
+function! GitStatus()
+  let [a,m,r] = GitGutterGetHunkSummary()
+  return printf('+%d ~%d -%d', a, m, r)
+endfunction
+set statusline+=%{GitStatus()}
+
+autocmd BufWritePost * GitGutter
+
+" Make GitGutter use popups instead of quickfix
+let g:gitgutter_preview_win_floating = 1
+let g:gitgutter_floating_window_options = {
+            \ 'highlight': 'Normal',
+            \ 'padding': [1],
+            \ 'border': [1],
+            \ 'mapping': v:true,
+            \ 'scrollbar': v:true,
+            \ 'moved': [0, 999]
+            \}
+
+if !has('nvim')
 let g:lsp_log_file = expand('~/vim-lsp.log') " TODO: hide this in a temp hidden dir
-
-" vim-lsp
-if executable('gopls')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'gopls',
-        \ 'cmd': {server_info->['gopls', '-remote=auto']},
-        \ 'allowlist': ['go'],
-        \ })
-    autocmd BufWritePre *.go LspDocumentFormatSync
-endif
-
-if executable('vim-language-server')
-  augroup LspVim
-    autocmd!
-    autocmd User lsp_setup call lsp#register_server({
-        \ 'name': 'vim-language-server',
-        \ 'cmd': {server_info->['vim-language-server', '--stdio']},
-        \ 'whitelist': ['vim'],
-        \ 'initialization_options': {
-        \   'vimruntime': $VIMRUNTIME,
-        \   'runtimepath': &rtp,
-        \ }})
-  augroup END
-endif
-
-if executable('pylsp')
-    au User lsp_setup call lsp#register_server({
-        \ 'name': 'pylsp',
-        \ 'cmd': {server_info->['pylsp']},
-        \ 'whitelist': ['python'],
-        \ })
-endif
-
-
 function! s:on_lsp_buffer_enabled() abort
     setlocal omnifunc=lsp#complete
     setlocal signcolumn=yes
@@ -145,7 +144,7 @@ augroup END
 " with setting compiler
 let g:OmniSharp_server_use_net6 = 1
 let g:OmniSharp_log_dir = '~/.local/share'
-let g:OmniSharp_server_path = '/etc/profiles/per-user/alialabbas/bin/omnisharp' " Consider writing this with Nix to make the write subtitute instead of hardcoding it here
+let g:OmniSharp_server_path = '/etc/profiles/per-user/alialabbas/bin/OmniSharp' " Consider writing this with Nix to make the write subtitute instead of hardcoding it here
 let g:OmniSharp_popup_options = {
     \ 'highlight': 'Normal',
     \ 'padding': [1],
@@ -164,29 +163,9 @@ autocmd FileType cs nnoremap gh :OmniSharpDocumentation<CR>
 autocmd FileType cs nnoremap <S-k> :OmniSharpPreviewDefinition<CR>
 
 " FZF mappings
-nnoremap <silent> <leader>ff :Files<CR>
+nnoremap <silent> <leader>ff :GitFiles<CR>
 nnoremap <silent> <leader>fg :Rg<CR>
 nnoremap <silent> <leader>fb :Buffers<CR>
-
-" GitGutter
-function! GitStatus()
-  let [a,m,r] = GitGutterGetHunkSummary()
-  return printf('+%d ~%d -%d', a, m, r)
-endfunction
-set statusline+=%{GitStatus()}
-
-autocmd BufWritePost * GitGutter
-
-" Make GitGutter use popups instead of quickfix
-let g:gitgutter_preview_win_floating = 1
-let g:gitgutter_floating_window_options = {
-            \ 'highlight': 'Normal',
-            \ 'padding': [1],
-            \ 'border': [1],
-            \ 'mapping': v:true,
-            \ 'scrollbar': v:true,
-            \ 'moved': [0, 999]
-            \}
 
 " AsyncComplete
 inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
@@ -236,4 +215,103 @@ function GetDotnetDLL() abort
                 \    }
                 \})
 endfunction
+let g:lsp_preview_float = 1
+endif
+au BufRead,BufNewFile */playbooks/*.yml set filetype=yaml.ansible
 
+" I don't know what is setting ESC to previoustab but it is annoying, reset it
+unmap <ESC>
+
+if has('nvim')
+nmap <leader>tt :Telescope<CR>
+" Not the best folding right now since some scm objects don't fold on
+" comments by default, need to override those later on
+set foldmethod=expr
+set foldexpr=nvim_treesitter#foldexpr()
+set nofoldenable                     " Disable folding at startup.
+
+lua << EOF
+require'nvim-treesitter.configs'.setup {
+  highlight = {
+    enable = true
+  }
+}
+
+require('Comment').setup()
+require('refactoring').setup({})
+-- Remaps for the refactoring operations currently offered by the plugin
+vim.api.nvim_set_keymap("v", "<leader>re", [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Function')<CR>]], {noremap = true, silent = true, expr = false})
+vim.api.nvim_set_keymap("v", "<leader>rf", [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Function To File')<CR>]], {noremap = true, silent = true, expr = false})
+vim.api.nvim_set_keymap("v", "<leader>rv", [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Variable')<CR>]], {noremap = true, silent = true, expr = false})
+vim.api.nvim_set_keymap("v", "<leader>ri", [[ <Esc><Cmd>lua require('refactoring').refactor('Inline Variable')<CR>]], {noremap = true, silent = true, expr = false})
+
+-- Extract block doesn't need visual mode
+vim.api.nvim_set_keymap("n", "<leader>rb", [[ <Cmd>lua require('refactoring').refactor('Extract Block')<CR>]], {noremap = true, silent = true, expr = false})
+vim.api.nvim_set_keymap("n", "<leader>rbf", [[ <Cmd>lua require('refactoring').refactor('Extract Block To File')<CR>]], {noremap = true, silent = true, expr = false})
+
+-- Inline variable can also pick up the identifier currently under the cursor without visual mode
+vim.api.nvim_set_keymap("n", "<leader>ri", [[ <Cmd>lua require('refactoring').refactor('Inline Variable')<CR>]], {noremap = true, silent = true, expr = false})
+
+
+-- Mappings.
+-- See `:help vim.diagnostic.*` for documentation on any of the below functions
+local opts = { noremap=true, silent=true }
+vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
+vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
+
+-- Use an on_attach function to only map the following keys
+-- after the language server attaches to the current buffer
+local on_attach = function(client, bufnr)
+  -- Enable completion triggered by <c-x><c-o>
+  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+  -- Mappings.
+  -- See `:help vim.lsp.*` for documentation on any of the below functions
+  local bufopts = { noremap=true, silent=true, buffer=bufnr }
+  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
+  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+  vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
+  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
+  vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
+  vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
+  vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
+  vim.keymap.set('n', '<space>wl', function()
+    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+  end, bufopts)
+  vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
+  vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
+  vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
+  vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+  vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+end
+
+local lsp_flags = {
+  -- This is the default in Nvim 0.7+
+  debounce_text_changes = 150,
+}
+local pid = vim.fn.getpid()
+-- On linux/darwin if using a release build, otherwise under scripts/OmniSharp(.Core)(.cmd)
+local omnisharp_bin = "OmniSharp"
+-- on Windows
+-- local omnisharp_bin = "/path/to/omnisharp/OmniSharp.exe"
+
+local config = {
+  handlers = {
+    ["textDocument/definition"] = require('omnisharp_extended').handler,
+  },
+  cmd = { omnisharp_bin, '--languageserver' , '--hostPID', tostring(pid) },
+  -- rest of your settings
+  on_attach = on_attach,
+}
+
+require'lspconfig'.omnisharp.setup(config)
+require('lspconfig')['gopls'].setup {
+    on_attach = on_attach,
+    flags = lsp_flags
+}
+require'lspconfig'.rnix.setup{ on_attatch = on_attach }
+require'lspconfig'.ansiblels.setup{ on_attach = on_attach }
+EOF
+endif

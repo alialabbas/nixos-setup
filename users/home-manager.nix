@@ -3,10 +3,10 @@
 {
   xdg.enable = true;
 
+  home.stateVersion = "22.11";
   home.packages = [
     pkgs.bat
     pkgs.fd
-    pkgs.firefox
     pkgs.fzf
     pkgs.htop
     pkgs.jq
@@ -24,6 +24,7 @@
     pkgs.gopls
     pkgs.omnisharp-roslyn
     pkgs.netcoredbg
+    pkgs.rnix-lsp
 
     # overlays helper scripts from ../../overlays/k8-helpers.nix
     pkgs.kconfig
@@ -35,13 +36,14 @@
     pkgs.hreleases
     pkgs.hdelns
     pkgs.fzf-repl
+    pkgs.git-url
   ] ++ extraPkgs;
 
   home.sessionVariables = {
     LANG = "en_US.UTF-8";
     LC_CTYPE = "en_US.UTF-8";
     LC_ALL = "en_US.UTF-8";
-    EDITOR = "nvim";
+    EDITOR = "vim";
     PAGER = "less -FirSwX";
     MANPAGER = "sh -c 'col -bx | ${pkgs.bat}/bin/bat -l man -p'";
   };
@@ -137,13 +139,44 @@
     };
   };
 
+  programs.neovim = {
+    enable = true;
+    plugins = with pkgs; [
+      # Neovim specific packages
+      # include all grammers, no point in including only what I need right now
+      (vimPlugins.nvim-treesitter.withPlugins (plugins: pkgs.tree-sitter.allGrammars))
+      vimPlugins.nvim-treesitter-context
+      vimPlugins.comment-nvim
+      vimPlugins.refactoring-nvim
+      vimPlugins.nvim-lspconfig
+      vimPlugins.omnisharp-extended-lsp-nvim
+      vimPlugins.telescope-nvim
+      # shared packages
+      vimPlugins.vim-fugitive
+      #customVim.omnisharp-vim # TODO: Figure out why Omnisharp won't work with vim-lsp
+      customVim.vimspector
+      vimPlugins.fzf-vim
+      vimPlugins.vim-airline
+      vimPlugins.vim-airline-themes
+      vimPlugins.vim-gitgutter
+      vimPlugins.onehalf
+      vimPlugins.zenburn
+      vimPlugins.vim-nixhash
+      vimPlugins.vim-nix
+      vimPlugins.ansible-vim
+    ];
+    extraConfig = builtins.readFile ./vimrc;
+  };
+
   programs.vim = {
     enable = true;
     plugins = with pkgs; [
       vimPlugins.vim-fugitive
       customVim.omnisharp-vim # TODO: Figure out why Omnisharp won't work with vim-lsp
       customVim.vimspector
+      customVim.vim-lsp-settings
       vimPlugins.vim-lsp
+      vimPlugins.context-vim
       vimPlugins.fzf-vim
       vimPlugins.vim-airline
       vimPlugins.vim-airline-themes
@@ -154,6 +187,7 @@
       vimPlugins.zenburn
       vimPlugins.vim-nixhash
       vimPlugins.vim-nix
+      vimPlugins.ansible-vim
     ];
     extraConfig = builtins.readFile ./vimrc;
   };
