@@ -15,7 +15,7 @@
     pkgs.tree
     pkgs.watch
     pkgs.zathura
-    pkgs.dotnet-sdk
+    (with pkgs.dotnetCorePackages; combinePackages [ sdk_5_0 sdk_6_0 sdk_7_0 ])
     pkgs.yq
     pkgs.kind
     pkgs.kubectl
