@@ -58,6 +58,9 @@
     shellOptions = [];
     historyControl = [ "ignoredups" "ignorespace" ];
     initExtra = builtins.readFile ./bashrc + extraBashrc;
+    profileExtra = ''
+      if [ -e /home/alialabbas/.nix-profile/etc/profile.d/nix.sh ]; then . /home/alialabbas/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+      '';
 
     shellAliases = {
       ga = "git add";
@@ -69,6 +72,7 @@
       gp = "git push";
       gs = "git status";
       gt = "git tag";
+      vsdbg = "${pkgs.vscode-extensions.ms-dotnettools.csharp}/share/vscode/extensions/ms-dotnettools.csharp/.debugger/vsdbg";
     };
   };
 
