@@ -72,7 +72,6 @@
       gp = "git push";
       gs = "git status";
       gt = "git tag";
-      vsdbg = "${pkgs.vscode-extensions.ms-dotnettools.csharp}/share/vscode/extensions/ms-dotnettools.csharp/.debugger/vsdbg";
     };
   };
 
