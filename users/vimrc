@@ -40,6 +40,7 @@ set autoindent 	  " Autoindent new lines
 
 " AutoComplete options
 set wildmenu
+set wildmode=longest:full,full
 set wop=pum
 
 " Tabs
