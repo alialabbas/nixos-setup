@@ -18,6 +18,10 @@ set title                 " Set the title for gvim
 syntax on                 " Enable filetype detection by syntax
 
 " Backup settings
+call mkdir($HOME . "/.vim/swap", "p")
+call mkdir($HOME . "/.vim/backup", "p")
+call mkdir($HOME . "/.vim/undo", "p")
+
 execute "set directory=~/.vim/swap"
 execute "set backupdir=~/.vim/backup"
 execute "set undodir=~/.vim/undo"
