@@ -27,6 +27,8 @@ nixpkgs.lib.nixosSystem {
           (import ../modules/home-manager/neovim/neovim.nix)
         ];
         modules.git.enable = true; # TODO: maybe make this the responsibility of the external user disable them
+        modules.git.username = "Ali Alabbas";
+        modules.git.email = "ali.n.alabbas@gmail.com";
         modules.vim.enable = true;
         modules.bash.enable = true;
         modules.neovim.enable = true;
