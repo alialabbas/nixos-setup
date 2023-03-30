@@ -1,6 +1,6 @@
 # A function that I use and expose in my flake to allow me to configure a base nixosSystem that has pre-baked modules
 # that I want to be used all the time and allow me to extend this base further
-{ name, hostname, modules ? [], systemOverlays ? [] }: { nixpkgs, home-manager, system, user, overlays, email, fullname, extraMods ? [], extraPkgs ? [], extraBashrc ? ''''}:
+{ name, hostname, modules ? [ ], systemOverlays ? [ ] }: { nixpkgs, home-manager, system, user, overlays, email, fullname, extraMods ? [ ], extraPkgs ? [ ], extraBashrc ? '''' }:
 
 nixpkgs.lib.nixosSystem {
   inherit system;
@@ -13,10 +13,24 @@ nixpkgs.lib.nixosSystem {
     ../hardware/${name}.nix
     ../machines/${name}.nix
     ../users/nixos.nix
-    home-manager.nixosModules.home-manager {
+    home-manager.nixosModules.home-manager
+    {
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
-      home-manager.users.${user} = import ../users/home-manager.nix;
+      home-manager.users.${user} = {
+        imports = [
+          # TODO: these should be loaded nicely similar to pkgs... Manually adding them is a pain
+          (import ../users/home-manager.nix)
+          (import ../modules/home-manager/vim/vim.nix)
+          (import ../modules/home-manager/git/git.nix)
+          (import ../modules/home-manager/bash/bash.nix)
+          (import ../modules/home-manager/neovim/neovim.nix)
+        ];
+        modules.git.enable = true; # TODO: maybe make this the responsibility of the external user disable them
+        modules.vim.enable = true;
+        modules.bash.enable = true;
+        modules.neovim.enable = true;
+      };
       home-manager.extraSpecialArgs = {
         user = user;
         email = email;

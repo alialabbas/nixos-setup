@@ -1,0 +1,314 @@
+# TODO: probably common settings should also be moved out to be used my neovim potentially
+# TODO: rather than making the nixify the whoel vimrc, extract the nix related parts and use a different file to and concat them to keep it clean and easy to move away from nix if needed
+{ pkgs }:
+''
+" Basic Options
+set autoread              " Reload files that have not been modified
+set backspace=2           " Makes backspace behave like you'd expect
+set colorcolumn=80        " Highlight 80 character limit
+set hidden                " Allow buffers to be backgrounded without being saved
+set laststatus=2          " Always show the status bar
+set list                  " Show invisible characters
+set listchars=tab:›\ ,eol:¬,trail:⋅ "Set the characters for the invisibles
+set number
+set ruler                 " Show the line number and column in the status bar
+set t_Co=256              " Use 256 colors
+set scrolloff=999         " Keep the cursor centered in the screen
+set showmatch             " Highlight matching braces
+set showmode              " Show the current mode on the open buffer
+set splitbelow            " Splits show up below by default
+set splitright            " Splits go to the right by default
+set title                 " Set the title for gvim
+syntax on                 " Enable filetype detection by syntax
+
+" Backup settings
+call mkdir($HOME . "/.vim/swap", "p")
+call mkdir($HOME . "/.vim/backup", "p")
+call mkdir($HOME . "/.vim/undo", "p")
+
+execute "set directory=~/.vim/swap"
+execute "set backupdir=~/.vim/backup"
+execute "set undodir=~/.vim/undo"
+set backup
+set undofile
+set writebackup
+
+" Search settings
+set hlsearch   " Highlight results
+set ignorecase " Ignore casing of searches
+set incsearch  " Start showing results as you type
+set smartcase  " Be smart about case sensitivity when searching
+
+" Tab settings
+set expandtab     " Expand tabs to the proper type and size
+set tabstop=4     " Tabs width in spaces
+set softtabstop=4 " Soft tab width in spaces
+set shiftwidth=4  " Amount of spaces when shifting
+set autoindent 	  " Autoindent new lines
+
+" AutoComplete options
+set wildmenu
+set wildmode=longest:full,full
+set wop=pum
+
+" Tabs
+nnoremap <C-t> :tabnew<CR>
+nnoremap <C-c> :tabclose<CR>
+nnoremap <C-[> :tabprevious<CR>
+nnoremap <C-]> :tabnext<CR>
+
+" Force write files that requires sudo access
+cmap w!! %!sudo tee > /dev/null %
+
+" Close all buffers except the current active one
+nmap <leader>ca :%bd <bar> e# <bar> bd# <CR>
+
+" Shortcut to yanking to the system clipboard
+map <leader>y "+y
+map <leader>p "+p
+
+" Get rid of search highlights
+noremap <silent><leader>/ :nohlsearch<cr>
+
+""" AutoCommands
+" Clear whitespace at the end of lines automatically
+autocmd BufWritePre * :%s/\s\+$//e
+
+" make vim follow the terminal true color
+" https://github.com/sonph/onehalf/tree/master/vim#true-colors
+if exists('+termguicolors')
+  " fix colorscheme with modern terminal
+  let g:terminal_ansi_colors = [
+        \'#383a42', '#e45649', '#50a14f', '#c18401', '#0184bc',
+        \'#a626a4', '#0997b3', '#fafafa', '#a0a1a7', '#fafafa',
+        \'#d4d4d4', '#e5e5e5', '#f0f0f0', '#f0f0f0', '#bfceff', '#f0f0f0' ]
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+  set termguicolors
+endif
+
+colorscheme onehalfdark
+" https://github.com/sonph/onehalf/pull/106/files
+hi Pmenu guifg=#dcdfe4 ctermfg=188
+hi Pmenu gui=NONE cterm=NONE
+hi Pmenu guibg=#313640 ctermbg=237
+
+"
+" nicer Airline viewer
+let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:bufferline_echo = 0
+let g:airline_powerline_fonts = 1
+
+" GitGutter
+function! GitStatus()
+  let [a,m,r] = GitGutterGetHunkSummary()
+  return printf('+%d ~%d -%d', a, m, r)
+endfunction
+set statusline+=%{GitStatus()}
+
+autocmd BufWritePost * GitGutter
+
+" Make GitGutter use popups instead of quickfix
+let g:gitgutter_preview_win_floating = 1
+let g:gitgutter_floating_window_options = {
+            \ 'highlight': 'Normal',
+            \ 'padding': [1],
+            \ 'border': [1],
+            \ 'mapping': v:true,
+            \ 'scrollbar': v:true,
+            \ 'moved': [0, 999]
+            \}
+
+if !has('nvim')
+
+let g:lsp_settings = {
+  \  'rnix-lsp': {'cmd': [ '${pkgs.rnix-lsp}/bin/rnix-lsp' ]},
+  \  'gopls': { 'cmd': [ '${pkgs.gopls}/bin/gopls', '-remote=auto'] },
+\}
+
+let g:lsp_log_file = expand('~/vim-lsp.log') " TODO: hide this in a temp hidden dir
+function! s:on_lsp_buffer_enabled() abort
+    setlocal omnifunc=lsp#complete
+    setlocal signcolumn=yes
+    if exists('+tagfunc') | setlocal tagfunc=lsp#tagfunc | endif
+    nmap <buffer> gd <plug>(lsp-definition)
+    nmap <buffer> gs <plug>(lsp-document-symbol-search)
+    nmap <buffer> gS <plug>(lsp-workspace-symbol-search)
+    nmap <buffer> gr <plug>(lsp-references)
+    nmap <buffer> gi <plug>(lsp-implementation)
+    nmap <buffer> gt <plug>(lsp-type-definition)
+    nmap <buffer> <leader>rn <plug>(lsp-rename)
+    nmap <buffer> [g <plug>(lsp-previous-diagnostic)
+    nmap <buffer> ]g <plug>(lsp-next-diagnostic)
+    nmap <buffer> K <plug>(lsp-hover)
+    nnoremap <buffer> <expr><c-f> lsp#scroll(+4)
+    nnoremap <buffer> <expr><c-d> lsp#scroll(-4)
+    let g:lsp_format_sync_timeout = 1000
+    autocmd! BufWritePre *.rs,*.go,*.nix call execute('LspDocumentFormatSync')
+endfunction
+
+
+augroup lsp_install
+    au!
+    autocmd User lsp_buffer_enabled call s:on_lsp_buffer_enabled()
+augroup END
+
+
+" Omnisharp setings, TODO: move these to a proper plugin that I build along
+" with setting compiler
+let g:OmniSharp_server_use_net6 = 1
+let g:OmniSharp_log_dir = '~/.local/share'
+let g:OmniSharp_server_path = '/etc/profiles/per-user/alialabbas/bin/OmniSharp' " Consider writing this with Nix to make the write subtitute instead of hardcoding it here
+let g:OmniSharp_popup_options = {
+    \ 'highlight': 'Normal',
+    \ 'padding': [1],
+    \ 'border': [1]
+    \}
+let g:OmniSharp_loglevel = 'info'
+
+autocmd FileType cs nnoremap gd :OmniSharpGotoDefinition<CR>
+autocmd FileType cs nnoremap gi :OmniSharpFindImplementations<CR>
+autocmd FileType cs nnoremap gs :OmniSharpFindSymbol<CR>
+autocmd FileType cs nnoremap gu :OmniSharpFindUsages<CR>
+" TODO: consider making this a side window that open to the left or right and
+" toggable
+autocmd FileType cs nnoremap gm :OmniSharpFindMembers<CR>
+autocmd FileType cs nnoremap gh :OmniSharpDocumentation<CR>
+autocmd FileType cs nnoremap <S-k> :OmniSharpPreviewDefinition<CR>
+
+" FZF mappings
+nnoremap <silent> <leader>ff :GitFiles<CR>
+nnoremap <silent> <leader>fg :Rg<CR>
+nnoremap <silent> <leader>fb :Buffers<CR>
+
+" AsyncComplete
+inoremap <expr> <Tab>   pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
+
+" Vimspector
+let g:vimspector_enable_mappings = 'HUMAN'
+
+" Ideally you would read the csproj to find the assembly
+" From their, we can either find the assemblby name from the xml
+" Or default project name
+function GetDotnetDLL() abort
+    let dlls = []
+    let host = OmniSharp#GetHost()
+    for project in host.job.projects
+        call add(dlls, project.target)
+    endfor
+    let choosen_target = fzf#run({'source': dlls})
+    call vimspector#LaunchWithConfigurations({
+                \    'launch': {
+                \      'adapter': 'netcoredbg',
+                \      'configuration': {
+                \        'request': 'launch',
+                \        'program': choosen_target[0],
+                \        'args': [],
+                \      }
+                \    }
+                \})
+endfunction
+let g:lsp_preview_float = 1
+endif
+au BufRead,BufNewFile */playbooks/*.yml set filetype=yaml.ansible
+
+" I don't know what is setting ESC to previoustab but it is annoying, reset it
+unmap <ESC>
+
+if has('nvim')
+nmap <leader>tt :Telescope<CR>
+" Not the best folding right now since some scm objects don't fold on
+" comments by default, need to override those later on
+set foldmethod=expr
+set foldexpr=nvim_treesitter#foldexpr()
+set nofoldenable                     " Disable folding at startup.
+
+lua << EOF
+require'nvim-treesitter.configs'.setup {
+  highlight = {
+    enable = true
+  }
+}
+
+require('Comment').setup()
+require('refactoring').setup({})
+-- Remaps for the refactoring operations currently offered by the plugin
+vim.api.nvim_set_keymap("v", "<leader>re", [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Function')<CR>]], {noremap = true, silent = true, expr = false})
+vim.api.nvim_set_keymap("v", "<leader>rf", [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Function To File')<CR>]], {noremap = true, silent = true, expr = false})
+vim.api.nvim_set_keymap("v", "<leader>rv", [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Variable')<CR>]], {noremap = true, silent = true, expr = false})
+vim.api.nvim_set_keymap("v", "<leader>ri", [[ <Esc><Cmd>lua require('refactoring').refactor('Inline Variable')<CR>]], {noremap = true, silent = true, expr = false})
+
+-- Extract block doesn't need visual mode
+vim.api.nvim_set_keymap("n", "<leader>rb", [[ <Cmd>lua require('refactoring').refactor('Extract Block')<CR>]], {noremap = true, silent = true, expr = false})
+vim.api.nvim_set_keymap("n", "<leader>rbf", [[ <Cmd>lua require('refactoring').refactor('Extract Block To File')<CR>]], {noremap = true, silent = true, expr = false})
+
+-- Inline variable can also pick up the identifier currently under the cursor without visual mode
+vim.api.nvim_set_keymap("n", "<leader>ri", [[ <Cmd>lua require('refactoring').refactor('Inline Variable')<CR>]], {noremap = true, silent = true, expr = false})
+
+
+-- Mappings.
+-- See `:help vim.diagnostic.*` for documentation on any of the below functions
+local opts = { noremap=true, silent=true }
+vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, opts)
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
+vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
+
+-- Use an on_attach function to only map the following keys
+-- after the language server attaches to the current buffer
+local on_attach = function(client, bufnr)
+  -- Enable completion triggered by <c-x><c-o>
+  vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
+  -- Mappings.
+  -- See `:help vim.lsp.*` for documentation on any of the below functions
+  local bufopts = { noremap=true, silent=true, buffer=bufnr }
+  vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
+  vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
+  vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
+  vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, bufopts)
+  vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, bufopts)
+  vim.keymap.set('n', '<space>wa', vim.lsp.buf.add_workspace_folder, bufopts)
+  vim.keymap.set('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, bufopts)
+  vim.keymap.set('n', '<space>wl', function()
+    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+  end, bufopts)
+  vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
+  vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
+  vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
+  vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
+  vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
+end
+
+local lsp_flags = {
+  -- This is the default in Nvim 0.7+
+  debounce_text_changes = 150,
+}
+local pid = vim.fn.getpid()
+-- On linux/darwin if using a release build, otherwise under scripts/OmniSharp(.Core)(.cmd)
+local omnisharp_bin = "OmniSharp"
+-- on Windows
+-- local omnisharp_bin = "/path/to/omnisharp/OmniSharp.exe"
+
+local config = {
+  handlers = {
+    ["textDocument/definition"] = require('omnisharp_extended').handler,
+  },
+  cmd = { omnisharp_bin, '--languageserver' , '--hostPID', tostring(pid) },
+  -- rest of your settings
+  on_attach = on_attach,
+}
+
+require'lspconfig'.omnisharp.setup(config)
+require('lspconfig')['gopls'].setup {
+    on_attach = on_attach,
+    flags = lsp_flags
+}
+require'lspconfig'.rnix.setup{ on_attatch = on_attach }
+require'lspconfig'.ansiblels.setup{ on_attach = on_attach }
+EOF
+endif
+''

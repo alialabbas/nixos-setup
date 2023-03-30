@@ -8,7 +8,7 @@
       keep-outputs = true
       keep-derivations = true
     '';
-   };
+  };
 
   hardware.video.hidpi.enable = true;
 
@@ -61,7 +61,7 @@
     rxvt_unicode
     xclip
     # TODO: this should probably be in home-manager.nix but I can't figure how to make nix install it in the correct path for the wsl to pick it up
-    kitty-launcher
+    kitty-launcher # TODO: this laucnher stuff should probably be a module of sort
   ];
 
   services.openssh.enable = true;
@@ -86,9 +86,9 @@
   services.avahi = {
     enable = true;
     publish = {
-       enable = true;
-       addresses = true;
-       workstation = true;
+      enable = true;
+      addresses = true;
+      workstation = true;
     };
   };
 

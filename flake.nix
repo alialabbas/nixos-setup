@@ -26,7 +26,7 @@
 
     overlays = [
       # Think of adding a centralized way to apply common overlays
-      (import ./overlays/vim.nix)
+      #(import ./overlays/vim.nix)
       (import ./overlays/launchers.nix)
       (import ./overlays/k8-helpers.nix)
       (import ./overlays/fzf.nix)
@@ -56,6 +56,11 @@
 
     baseWSL = baseWSL;
     baseHome = baseHome;
+
+    # TODO: similar to how I am building packages based on a patch, it would be great to utilize the tree structure to create these modules
+    nixosModules.home.common = import ./users/home-manager.nix;
+    nixosModules.home.vim = import ./modules/home-manager/vim/vim.nix;
+    nixosModules.home.git = import ./modules/home-manager/git/git.nix;
 
     nixosConfigurations.vm-intel = mkNix { name = "vm-intel"; hostname = "dev"; } ({
       inherit nixpkgs home-manager overlays;
