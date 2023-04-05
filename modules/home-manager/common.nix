@@ -1,44 +1,27 @@
-{ config, lib, pkgs, email, fullname, extraPkgs, extraBashrc, ... }:
+{ config, lib, pkgs, ... }:
 
+let
+  myPkgs = lib.attrValues (import ../../lib/pkgsBuilder.nix { inherit pkgs lib; });
+in
 {
   xdg.enable = true;
 
   home.stateVersion = "22.11";
-  # TODO: refactor these packages
+
+  programs.home-manager.enable = true;
+
   home.packages = [
     pkgs.bat
     pkgs.fd
-    pkgs.fzf
     pkgs.htop
     pkgs.jq
     pkgs.ripgrep
-    pkgs.rofi
     pkgs.tree
     pkgs.watch
-    pkgs.zathura
-    (with pkgs.dotnetCorePackages; combinePackages [ sdk_5_0 sdk_6_0 sdk_7_0 ])
-    pkgs.yq
-    pkgs.kind
-    pkgs.kubectl
-    pkgs.kubernetes-helm
+    (with pkgs.dotnetCorePackages; combinePackages [ sdk_6_0 sdk_7_0 ]) # TODO: move dotnet and languages outside of this module into an inlined one inside flake.nix to make it easy to change these dependencies later on
     pkgs.go
-    #pkgs.gopls
-    pkgs.omnisharp-roslyn
-    #pkgs.netcoredbg
-    #pkgs.rnix-lsp
-
-    # overlays helper scripts from ../../overlays/k8-helpers.nix
-    pkgs.kconfig
-    pkgs.kforward
-    pkgs.klogs
-    pkgs.knamespace
-    pkgs.krepl
-    pkgs.kexec
-    pkgs.hreleases
-    pkgs.hdelns
-    pkgs.fzf-repl
-    pkgs.git-url
-  ] ++ extraPkgs;
+    pkgs.yq
+  ] ++ myPkgs;
 
   home.sessionVariables = {
     LANG = "en_US.UTF-8";
@@ -49,12 +32,16 @@
     MANPAGER = "sh -c 'col -bx | ${pkgs.bat}/bin/bat -l man -p'";
   };
 
-  home.file.".inputrc".source = ./inputrc;
+  programs.readline = {
+    enable = true;
+    extraConfig = builtins.readFile ../../users/inputrc;
+  };
 
   programs.tmux = {
     enable = true;
     terminal = "xterm-256color";
     secureSocket = false;
+    keyMode = "vi";
     plugins = with pkgs.tmuxPlugins; [
       sidebar
       pain-control
@@ -74,10 +61,9 @@
     '';
   };
 
-  # TODO: would be great if this can be modularized
   programs.kitty = {
     enable = true;
-    extraConfig = builtins.readFile ./kitty;
+    extraConfig = builtins.readFile ../../users/kitty;
   };
 
   programs.fzf = {

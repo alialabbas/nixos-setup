@@ -1,11 +1,20 @@
-# I will probably need an internal common packages so that i am able to just include here the extra stuff
-# This means I will definitely need a home-manager-wsl.nix
-# home manager configuration for a full nixos desktop environment
-{ config, lib, pkgs, email, fullname, extraPkgs, extraBashrc, ... }:
+{ pkgs, lib, ... }:
 
 {
-  xdg.configFile."i3/config".text = builtins.readFile ./i3;
-  xdg.configFile."rofi/config.rasi".text = builtins.readFile ./rofi;
+  imports = [
+    ../common.nix
+    ../vim/vim.nix
+    ../git/git.nix
+    ../bash/bash.nix
+    ../neovim/neovim.nix
+  ];
+
+  home.packages = with pkgs; [
+    rofi
+  ];
+
+  xdg.configFile."i3/config".text = builtins.readFile ../../../users/i3;
+  xdg.configFile."rofi/config.rasi".text = builtins.readFile ../../../users/rofi;
 
   programs.i3status = {
     enable = true;
@@ -24,7 +33,7 @@
     };
   };
 
-  xresources.extraConfig = builtins.readFile ./Xresources;
+  xresources.extraConfig = builtins.readFile ../../../users/Xresources;
 
   # Make cursor not tiny on HiDPI screens
   home.pointerCursor = {
@@ -33,5 +42,5 @@
     size = 128;
     x11.enable = true;
   };
-}
 
+}

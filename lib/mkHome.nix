@@ -1,18 +1,24 @@
-{ nixpkgs, home-manager, overlays }: { user, email, fullname,  extraPkgs ? [], extraBashrc ? ''''}:
+{ nixpkgs
+, home-manager
+, user
+, fullname
+, email
+, home-modules ? [ ]
+, overlays ? [ ]
+}:
 
 home-manager.lib.homeManagerConfiguration {
   pkgs = nixpkgs.legacyPackages.x86_64-linux;
   modules = [
     { nixpkgs.overlays = overlays; }
-    ../users/home-manager.nix
-    ../home.nix
-  ];
-  extraSpecialArgs = {
-    user = user;
-    extraPkgs = extraPkgs;
-    email = email;
-    fullname = fullname;
-    extraBashrc = extraBashrc;
-    };
+    ../modules/home-manager/wsl/wsl.nix
+    ({
+      programs.git.userName = fullname;
+      programs.git.userEmail = email;
+
+      home.username = user;
+      home.homeDirectory = "/home/" + user;
+    })
+  ] ++ home-modules;
 }
 

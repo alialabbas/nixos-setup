@@ -1,6 +1,6 @@
 { pkgs, writeShellScriptBin }:
 
-writeShellScriptBin "knamespace" ''
+writeShellScriptBin "k8amespace" ''
   FZF_DEFAULT_COMMAND="kubectl get namespaces" \
       fzf --info=inline --layout=reverse --header-lines=1 \
           --header $'/ Enter to select a namespace to work with\n\n' \

@@ -1,7 +1,3 @@
-# TODO: probably common settings should also be moved out to be used my neovim potentially
-# TODO: rather than making the nixify the whoel vimrc, extract the nix related parts and use a different file to and concat them to keep it clean and easy to move away from nix if needed
-{ pkgs }:
-''
 " Basic Options
 set autoread              " Reload files that have not been modified
 set backspace=2           " Makes backspace behave like you'd expect
@@ -121,13 +117,10 @@ let g:gitgutter_floating_window_options = {
             \}
 
 if !has('nvim')
-
-let g:lsp_settings = {
-  \  'rnix-lsp': {'cmd': [ '${pkgs.rnix-lsp}/bin/rnix-lsp' ]},
-  \  'gopls': { 'cmd': [ '${pkgs.gopls}/bin/gopls', '-remote=auto'] },
-\}
-
-let g:lsp_log_file = expand('~/vim-lsp.log') " TODO: hide this in a temp hidden dir
+    let g:lsp_settings = {
+    \  'json-languageserver': {'cmd': ['vscode-json-languageserver', '--stdio']},
+    \}
+let g:lsp_log_file = expand('~/vim-lsp.log')
 function! s:on_lsp_buffer_enabled() abort
     setlocal omnifunc=lsp#complete
     setlocal signcolumn=yes
@@ -155,8 +148,6 @@ augroup lsp_install
 augroup END
 
 
-" Omnisharp setings, TODO: move these to a proper plugin that I build along
-" with setting compiler
 let g:OmniSharp_server_use_net6 = 1
 let g:OmniSharp_log_dir = '~/.local/share'
 let g:OmniSharp_server_path = '/etc/profiles/per-user/alialabbas/bin/OmniSharp' " Consider writing this with Nix to make the write subtitute instead of hardcoding it here
@@ -171,8 +162,6 @@ autocmd FileType cs nnoremap gd :OmniSharpGotoDefinition<CR>
 autocmd FileType cs nnoremap gi :OmniSharpFindImplementations<CR>
 autocmd FileType cs nnoremap gs :OmniSharpFindSymbol<CR>
 autocmd FileType cs nnoremap gu :OmniSharpFindUsages<CR>
-" TODO: consider making this a side window that open to the left or right and
-" toggable
 autocmd FileType cs nnoremap gm :OmniSharpFindMembers<CR>
 autocmd FileType cs nnoremap gh :OmniSharpDocumentation<CR>
 autocmd FileType cs nnoremap <S-k> :OmniSharpPreviewDefinition<CR>
@@ -189,7 +178,26 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 
 " Vimspector
 let g:vimspector_enable_mappings = 'HUMAN'
-
+let g:vimspector_adapters = {
+                \  'adapters': {
+                \    'netcoredbg': {
+                \      'attach': {
+                \        'pidProperty': 'processId',
+                \        'pidSelect': 'ask'
+                \      },
+                \      'command': [
+                \        'netcoredbg',
+                \        '--interpreter=vscode',
+                \        '--engineLogging=${workspaceRoot}/netcoredbg.engine.log',
+                \        '--log=${workspaceRoot}/netcoredbg.log'
+                \      ],
+                \      'configuration': {
+                \        'cwd': '${workspaceRoot}'
+                \      },
+                \      'name': 'netcoredbg'
+                \    }
+                \  }
+                \}
 " Ideally you would read the csproj to find the assembly
 " From their, we can either find the assemblby name from the xml
 " Or default project name
@@ -311,4 +319,3 @@ require'lspconfig'.rnix.setup{ on_attatch = on_attach }
 require'lspconfig'.ansiblels.setup{ on_attach = on_attach }
 EOF
 endif
-''
