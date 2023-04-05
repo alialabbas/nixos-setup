@@ -13,8 +13,8 @@
     rofi
   ];
 
-  xdg.configFile."i3/config".text = builtins.readFile ../../../users/i3;
-  xdg.configFile."rofi/config.rasi".text = builtins.readFile ../../../users/rofi;
+  xdg.configFile."i3/config".text = builtins.readFile ../../../dotfiles/i3;
+  xdg.configFile."rofi/config.rasi".text = builtins.readFile ../../../dotfiles/rofi;
 
   programs.i3status = {
     enable = true;
@@ -33,7 +33,7 @@
     };
   };
 
-  xresources.extraConfig = builtins.readFile ../../../users/Xresources;
+  xresources.extraConfig = builtins.readFile ../../../dotfiles/Xresources;
 
   # Make cursor not tiny on HiDPI screens
   home.pointerCursor = {

@@ -34,7 +34,7 @@ in
 
   programs.readline = {
     enable = true;
-    extraConfig = builtins.readFile ../../users/inputrc;
+    extraConfig = builtins.readFile ../../dotfiles/inputrc;
   };
 
   programs.tmux = {
@@ -63,7 +63,7 @@ in
 
   programs.kitty = {
     enable = true;
-    extraConfig = builtins.readFile ../../users/kitty;
+    extraConfig = builtins.readFile ../../dotfiles/kitty;
   };
 
   programs.fzf = {
