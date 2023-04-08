@@ -10,17 +10,18 @@ in
 
   programs.home-manager.enable = true;
 
-  home.packages = [
-    pkgs.bat
-    pkgs.fd
-    pkgs.htop
-    pkgs.jq
-    pkgs.ripgrep
-    pkgs.tree
-    pkgs.watch
-    (with pkgs.dotnetCorePackages; combinePackages [ sdk_6_0 sdk_7_0 ]) # TODO: move dotnet and languages outside of this module into an inlined one inside flake.nix to make it easy to change these dependencies later on
-    pkgs.go
-    pkgs.yq
+  home.packages = with pkgs;[
+    bat
+    fd
+    htop
+    jq
+    ripgrep
+    tree
+    watch
+    dotnet-sdk
+    go
+    yq
+    nvd
   ] ++ myPkgs;
 
   home.sessionVariables = {
