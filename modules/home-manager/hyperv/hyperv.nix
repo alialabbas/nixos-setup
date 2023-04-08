@@ -11,6 +11,7 @@
 
   home.packages = with pkgs; [
     rofi
+    firefox
   ];
 
   xdg.configFile."i3/config".text = builtins.readFile ../../../dotfiles/i3;

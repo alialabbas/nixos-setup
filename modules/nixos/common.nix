@@ -27,7 +27,7 @@ in
     networking = {
       hostName = cfg.hostname;
       firewall = {
-        enable = true;
+        enable = false;
       };
       useDHCP = false;
     };
