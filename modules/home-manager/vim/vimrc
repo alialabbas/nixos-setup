@@ -178,26 +178,83 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 
 " Vimspector
 let g:vimspector_enable_mappings = 'HUMAN'
+" TODO: make this filetype plugin to setup the variables to make it easier to
+" modify and extend
 let g:vimspector_adapters = {
-                \  'adapters': {
-                \    'netcoredbg': {
-                \      'attach': {
-                \        'pidProperty': 'processId',
-                \        'pidSelect': 'ask'
-                \      },
-                \      'command': [
-                \        'netcoredbg',
-                \        '--interpreter=vscode',
-                \        '--engineLogging=${workspaceRoot}/netcoredbg.engine.log',
-                \        '--log=${workspaceRoot}/netcoredbg.log'
-                \      ],
-                \      'configuration': {
-                \        'cwd': '${workspaceRoot}'
-                \      },
-                \      'name': 'netcoredbg'
-                \    }
-                \  }
-                \}
+    \   'netcoredbg': {
+    \     'attach': {
+    \       'pidProperty': 'processId',
+    \       'pidSelect': 'ask'
+    \     },
+    \     'command': [
+    \       'netcoredbg',
+    \       '--interpreter=vscode'
+    \     ],
+    \     'configuration': {
+    \       'cwd': '${workspaceRoot}'
+    \     },
+    \     'name': 'netcoredbg'
+    \   },
+    \   'delve': {
+    \     'command': ['dlv', 'dap', '--listen', '${listenOn}:${port}', '*${dlvFlags}' ],
+    \      'port': '${port}',
+    \      'tty': 'true',
+    \      'variables': {
+    \         'dlvFlags': '', 'listenOn': '127.0.0.1', 'port': '${unusedLocalPort}'
+    \      }
+    \   }
+    \ }
+
+let g:vimspector_configurations = {
+  \   'dotnet default prompt launch': {
+  \     'adapter': 'netcoredbg',
+  \     'configuration': {
+  \       'request': 'launch',
+  \       'default': v:false,
+  \       'program': '${workspaceRoot}/bin/Debug/net6.0/${DLL}',
+  \       'args': [],
+  \       'stopAtEntry': v:false
+  \     }
+  \   },
+  \  'go default go.mod': {
+  \    'adapter': 'delve',
+  \     'filetypes': [ 'go' ],
+  \    'configuration': {
+  \      'request': 'launch',
+  \      'program': '${fileDirname}',
+  \      'mode': 'debug'
+  \    }
+  \  },
+  \  'go default file': {
+  \     'adapter': 'delve',
+  \     'filetypes': [ 'go' ],
+  \     'configuration': {
+  \         'request': 'launch',
+  \         'program': '${file}',
+  \         'mode': 'debug'
+  \     }
+  \   },
+  \  'go test go.mod': {
+  \    'adapter': 'delve',
+  \     'filetypes': [ 'go' ],
+  \    'configuration': {
+  \      'request': 'launch',
+  \      'program': '${fileDirname}',
+  \      'mode': 'test'
+  \    }
+  \  },
+  \  'go test file': {
+  \     'adapter': 'delve',
+  \     'filetypes': [ 'go' ],
+  \     'configuration': {
+  \         'request': 'launch',
+  \         'program': '${file}',
+  \         'mode': 'test'
+  \     }
+  \   },
+  \}
+
+
 " Ideally you would read the csproj to find the assembly
 " From their, we can either find the assemblby name from the xml
 " Or default project name

@@ -10,8 +10,8 @@ in
     plugins = with pkgs;
       [
         vimPlugins.vim-fugitive
-        customPlugins.omnisharp-vim # TODO: Figure out why Omnisharp won't work with vim-lsp
-        customPlugins.vimspector
+        customPlugins.omnisharp-vim # TODO: Omnisharp doesn't work with vim-lsp due to $metadata, see if it is possible to extend vim-lsp and potentially drop this
+        vimPlugins.vimspector
         customPlugins.vim-lsp-settings
         vimPlugins.vim-lsp
         vimPlugins.context-vim
@@ -35,6 +35,10 @@ in
     gopls
     rnix-lsp
     omnisharp-roslyn
+    delve
+    gcc
+    python310Packages.debugpy
+    python310Full
   ];
 
 }
