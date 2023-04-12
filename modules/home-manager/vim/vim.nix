@@ -37,8 +37,6 @@ in
     omnisharp-roslyn
     delve
     gcc
-    python310Packages.debugpy
-    python310Full
   ];
 
 }
