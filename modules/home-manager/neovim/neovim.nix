@@ -35,6 +35,8 @@ in
       vimPlugins.nvim-web-devicons
       vimPlugins.neotest
       vimPlugins.nvim-dap-go
+      vimPlugins.cmp-nvim-lua
+      vimPlugins.cmp-git
     ] ++ customPlugins;
     extraConfig = builtins.readFile ../vim/vimrc;
   };

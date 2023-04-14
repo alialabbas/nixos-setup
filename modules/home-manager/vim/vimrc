@@ -330,6 +330,7 @@ require("telescope").setup({
   },
 })
 vim.api.nvim_set_keymap("n", "<leader>tt", ":Telescope<CR>", {noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<S-B>", ":SidebarNvimToggle<CR>", {noremap = true, silent = true})
 
 require('Comment').setup()
 require('refactoring').setup({})
@@ -398,7 +399,10 @@ cmp.setup {
     }),
   sources = {
       { name = 'nvim_lsp' },
-       { name = 'vsnip' }
+      { name = 'vsnip' },
+      { name = 'path' },
+      { name = 'nvim_lua' },
+      { name = 'git' },
   }
 }
 

@@ -65,6 +65,15 @@
       sha256 = "sha256-ehPnvGle7YrECn76YlSY/2V7Zeq56JGlmZPlwgz2FdE=";
     };
   };
+  cmp-path = vimUtils.buildVimPlugin {
+    name = "cmp-path";
+    src = fetchFromGitHub {
+      owner = "hrsh7th";
+      repo = "cmp-path";
+      rev = "91ff86cd9c29299a64f968ebb45846c485725f23";
+      sha256 = "sha256-thppiiV3wjIaZnAXmsh7j3DUc6ceSCvGzviwFUnoPaI=";
+    };
+  };
   vim-vsnip = vimUtils.buildVimPlugin {
     name = "vim-vsnip";
     src = fetchFromGitHub {
