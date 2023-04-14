@@ -284,7 +284,6 @@ au BufRead,BufNewFile */playbooks/*.yml set filetype=yaml.ansible
 unmap <ESC>
 
 if has('nvim')
-nmap <leader>tt :Telescope<CR>
 " Not the best folding right now since some scm objects don't fold on
 " comments by default, need to override those later on
 set foldmethod=expr
@@ -292,11 +291,45 @@ set foldexpr=nvim_treesitter#foldexpr()
 set nofoldenable                     " Disable folding at startup.
 
 lua << EOF
+-- set termguicolors to enable highlight groups
+vim.opt.title = false -- Fix wsl/windows-termainl
+vim.opt.termguicolors = true
+vim.cmd [[autocmd BufWritePre *.go,*.nix,*.rs lua vim.lsp.buf.format()]]
+
 require'nvim-treesitter.configs'.setup {
   highlight = {
     enable = true
+  },
+  playground = {
+   enable = true,
+   disable = {},
+   updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
+   persist_queries = false, -- Whether the query persists across vim sessions
+   keybindings = {
+     toggle_query_editor = 'o',
+     toggle_hl_groups = 'i',
+     toggle_injected_languages = 't',
+     toggle_anonymous_nodes = 'a',
+     toggle_language_display = 'I',
+     focus_language = 'f',
+     unfocus_language = 'F',
+     update = 'R',
+     goto_node = '<cr>',
+     show_help = '?',
+     },
   }
 }
+
+-- icons for telescope file types and such
+local icons = require("nvim-nonicons")
+require("telescope").setup({
+  defaults = {
+    prompt_prefix = "  " .. icons.get("telescope") .. "  ",
+    selection_caret = " ❯ ",
+    entry_prefix = "   ",
+  },
+})
+vim.api.nvim_set_keymap("n", "<leader>tt", ":Telescope<CR>", {noremap = true, silent = true})
 
 require('Comment').setup()
 require('refactoring').setup({})
@@ -348,6 +381,30 @@ local on_attach = function(client, bufnr)
   vim.keymap.set('n', '<space>f', function() vim.lsp.buf.format { async = true } end, bufopts)
 end
 
+local cmp = require"cmp"
+cmp.setup {
+    snippet = {
+        expand = function(args)
+          vim.fn["vsnip#anonymous"](args.body)
+        end,
+      },
+    mapping = cmp.mapping.preset.insert({
+      ['<C-Space>'] = cmp.mapping.complete({ select = true }),
+      ['<C-e>'] = cmp.mapping.close(),
+      ['<C-Space>'] = cmp.mapping.complete(),
+      ['<Tab>'] = cmp.mapping(cmp.mapping.select_next_item(), { 'i', 's' }),
+      ['<S-Tab>'] = cmp.mapping(cmp.mapping.select_prev_item(), { 'i', 's' }),
+      ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
+    }),
+  sources = {
+      { name = 'nvim_lsp' },
+       { name = 'vsnip' }
+  }
+}
+
+-- The nvim-cmp almost supports LSP's capabilities so You should advertise it to LSP servers..
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
 local lsp_flags = {
   -- This is the default in Nvim 0.7+
   debounce_text_changes = 150,
@@ -365,14 +422,144 @@ local config = {
   cmd = { omnisharp_bin, '--languageserver' , '--hostPID', tostring(pid) },
   -- rest of your settings
   on_attach = on_attach,
+  capabilities = capabilities,
 }
 
 require'lspconfig'.omnisharp.setup(config)
-require('lspconfig')['gopls'].setup {
-    on_attach = on_attach,
-    flags = lsp_flags
+-- Omnisharp is not in this list because it needs special handling
+local servers = { "gopls", "rnix", "ansiblels" }
+for _, lsp in ipairs(servers) do
+    require('lspconfig')[lsp].setup {
+        on_attach = on_attach,
+        capabilities = capabilities,
+    }
+end
+
+-- dap configurations
+local dap, dapui = require("dap"), require("dapui")
+vim.api.nvim_set_hl(0, 'DapBreakpoint', { ctermbg = 0, fg = '#993939' })
+vim.api.nvim_set_hl(0, 'DapLogPoint', { ctermbg = 0, fg = '#61afef' })
+vim.api.nvim_set_hl(0, 'DapStopped', { ctermbg = 0, fg = '#98c379' })
+
+vim.fn.sign_define('DapBreakpoint', { text='', texthl='DapBreakpoint', linehl='', numhl='' })
+vim.fn.sign_define('DapBreakpointCondition', { text='ﳁ', texthl='DapBreakpoint', linehl='', numhl='' })
+vim.fn.sign_define('DapBreakpointRejected', { text='', texthl='DapBreakpoint', linehl='', numhl= '' })
+vim.fn.sign_define('DapLogPoint', { text='', texthl='DapLogPoint', linehl='', numhl= '' })
+vim.fn.sign_define('DapStopped', { text='', texthl='DapStopped', linehl='', numhl= '' })
+
+dapui.setup()
+
+
+dap.listeners.after.event_initialized["dapui_config"] = function()
+  dapui.open()
+end
+dap.listeners.before.event_terminated["dapui_config"] = function()
+  dapui.close()
+end
+dap.listeners.before.event_exited["dapui_config"] = function()
+  dapui.close()
+end
+
+vim.g.dotnet_build_project = function()
+    local default_path = vim.fn.getcwd() .. '/'
+    if vim.g['dotnet_last_proj_path'] ~= nil then
+        default_path = vim.g['dotnet_last_proj_path']
+    end
+    local path = vim.fn.input('Path to your *proj file', default_path, 'file')
+    vim.g['dotnet_last_proj_path'] = path
+    local cmd = 'dotnet build -c Debug ' .. path .. ' > /dev/null'
+    print('')
+    print('Cmd to execute: ' .. cmd)
+    local f = os.execute(cmd)
+    if f == 0 then
+        print('\nBuild: ✔️ ')
+    else
+        print('\nBuild: ❌ (code: ' .. f .. ')')
+    end
+end
+
+vim.g.dotnet_get_dll_path = function()
+    local request = function()
+        return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/net6.0', 'file')
+    end
+
+    if vim.g['dotnet_last_dll_path'] == nil then
+        vim.g['dotnet_last_dll_path'] = request()
+    else
+        if vim.fn.confirm('Do you want to change the path to dll?\n' .. vim.g['dotnet_last_dll_path'], '&yes\n&no', 2) == 1 then
+            vim.g['dotnet_last_dll_path'] = request()
+        end
+    end
+
+    return vim.g['dotnet_last_dll_path']
+end
+
+local config = {
+  {
+    type = "coreclr",
+    name = "launch - netcoredbg",
+    request = "launch",
+    program = function()
+        if vim.fn.confirm('Should I recompile first?', '&yes\n&no', 2) == 1 then
+            vim.g.dotnet_build_project()
+        end
+        return vim.g.dotnet_get_dll_path()
+    end,
+  },
 }
-require'lspconfig'.rnix.setup{ on_attatch = on_attach }
-require'lspconfig'.ansiblels.setup{ on_attach = on_attach }
+
+
+dap.adapters.netcoredbg = {
+  type = 'executable',
+  command = 'netcoredbg',
+  args = {'--interpreter=vscode'}
+}
+
+require('dap-go').setup()
+
+dap.configurations.cs = config
+dap.configurations.fsharp = config
+
+require("neotest").setup({
+  adapters = {
+    require("neotest-dotnet"),
+    require("neotest-go")({
+      experimental = {
+        test_table = true,
+      },
+      args = { "-count=1", "-timeout=60s" }
+    })
+  }
+})
+
+
+
+local sidebar = require("sidebar-nvim")
+sidebar.setup({
+open = true,
+sections = { 'datetime', 'git', 'diagnostics', 'todos', 'symbols', 'buffers', 'files', 'containers'},
+todos = {
+        icon = "",
+        ignored_paths = {'~'}, -- ignore certain paths, this will prevent huge folders like $HOME to hog Neovim with TODO searching
+        initially_closed = false, -- whether the groups should be initially closed on start. You can manually open/close groups later.
+    },
+files = {
+        icon = "",
+        show_hidden = false,
+        ignored_paths = {"%.git$", "bin", "obj", "~"}
+    },
+
+})
+
+require('neogen').setup {
+    languages = {
+        cs = {
+            template = {
+                annotation_convention = "xmldoc"
+            },
+        },
+    },
+}
+
 EOF
 endif

@@ -50,7 +50,7 @@ in
       fontDir.enable = true;
       enableDefaultFonts = true;
       fonts = with pkgs; [
-        fira-code
+        (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
       ];
     };
 

@@ -30,6 +30,7 @@ in
     extraConfig = builtins.readFile ./vimrc;
   };
 
+  # maybe these should be its own module imported at both vim and neovim
   home.packages = with pkgs; [
     netcoredbg
     gopls

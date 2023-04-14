@@ -2,7 +2,11 @@
 
 with lib;
 let
-  customPlugins = pkgs.callPackage ./plugins.nix { };
+  customPlugins = builtins.attrValues (import ./plugins.nix {
+    vimUtils = pkgs.vimUtils;
+    fetchFromGitHub = pkgs.fetchFromGitHub;
+    buildNeovimPluginFrom2Nix = pkgs.neovimUtils.buildNeovimPluginFrom2Nix;
+  });
 in
 {
   programs.neovim = {
@@ -10,7 +14,6 @@ in
     plugins = with pkgs; [
       (vimPlugins.nvim-treesitter.withPlugins (plugins: pkgs.tree-sitter.allGrammars))
       vimPlugins.nvim-treesitter-context
-      customPlugins.nvim-treesitter-playground
       vimPlugins.comment-nvim
       vimPlugins.refactoring-nvim
       vimPlugins.nvim-lspconfig
@@ -26,7 +29,13 @@ in
       vimPlugins.vim-nixhash
       vimPlugins.vim-nix
       vimPlugins.ansible-vim
-    ];
+      vimPlugins.nvim-dap
+      vimPlugins.nvim-dap-ui
+      vimPlugins.nvim-nonicons
+      vimPlugins.nvim-web-devicons
+      vimPlugins.neotest
+      vimPlugins.nvim-dap-go
+    ] ++ customPlugins;
     extraConfig = builtins.readFile ../vim/vimrc;
   };
 
