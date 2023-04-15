@@ -4,6 +4,7 @@
   inputs = {
 
     nixpkgs.url = "github:nixos/nixpkgs/release-22.11";
+    unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-22.11";
@@ -17,11 +18,20 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixos-wsl, ... }:
+  outputs = { self, nixpkgs, home-manager, nixos-wsl, ... }@inputs:
     let
       mkNix = import ./lib/mkNix.nix;
       mkHome = import ./lib/mkHome.nix;
       system = "x86_64-linux";
+      # TODO: if this works, I should make a simpler method to pull from an array of inputs
+      overlays = [
+        (
+          self: super: {
+            lua-language-server = inputs.unstable.legacyPackages.${system}.lua-language-server;
+            nvim-lspconfig = inputs.unstable.legacyPackages.${system}.nvim-lspconfig;
+          }
+        )
+      ];
     in
     {
       lib = {
@@ -46,7 +56,7 @@
         user = "alialabbas";
         fullname = "Ali Alabbas";
         email = "ali.n.alabbas@gmail.com";
-        overlays = [ (import ./overlays/wsl.nix) ];
+        overlays = [ (import ./overlays/wsl.nix) ] ++ overlays;
       };
 
       homeConfigurations.home-only = mkHome {

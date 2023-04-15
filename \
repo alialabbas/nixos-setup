@@ -178,8 +178,6 @@ inoremap <expr> <cr>    pumvisible() ? asyncomplete#close_popup() : "\<cr>"
 
 " Vimspector
 let g:vimspector_enable_mappings = 'HUMAN'
-" TODO: make this filetype plugin to setup the variables to make it easier to
-" modify and extend
 let g:vimspector_adapters = {
     \   'netcoredbg': {
     \     'attach': {

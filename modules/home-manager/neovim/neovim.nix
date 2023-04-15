@@ -37,6 +37,8 @@ in
       vimPlugins.nvim-dap-go
       vimPlugins.cmp-nvim-lua
       vimPlugins.cmp-git
+      vimPlugins.cmp-conventionalcommits
+      vimPlugins.cmp-dap
     ] ++ customPlugins;
     extraConfig = builtins.readFile ../vim/vimrc;
   };
@@ -46,6 +48,7 @@ in
     gopls
     rnix-lsp
     omnisharp-roslyn
+    sumneko-lua-language-server
   ];
 }
 
