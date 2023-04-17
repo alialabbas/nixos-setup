@@ -39,7 +39,7 @@ in
       vimPlugins.toggleterm-nvim
       vimPlugins.lualine-nvim
     ] ++ customPlugins;
-    extraConfig = builtins.readFile ../vim/vimrc;
+    extraLuaConfig = builtins.readFile ../neovim/init.lua;
   };
 
   home.packages = with pkgs; [
