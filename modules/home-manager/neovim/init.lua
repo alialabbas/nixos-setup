@@ -58,7 +58,7 @@ vim.api.nvim_set_keymap("n", "<C-]>", ":tabnext<CR>", { noremap = true, silent =
 vim.api.nvim_set_keymap("c", "w!!", "%!sudo tee > /dev/null %", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("", "<leader>y", "+y", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("", "<leader>p", "+p", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("n", "<silent><leader>/", ":nohlsearch<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<leader>/", ":nohlsearch<CR>", { noremap = true, silent = true })
 
 ------ PLUGINS
 
