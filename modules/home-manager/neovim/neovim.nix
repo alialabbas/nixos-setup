@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 with lib;
 let
@@ -21,8 +21,6 @@ in
       vimPlugins.telescope-nvim
       vimPlugins.vim-fugitive
       vimPlugins.fzf-vim
-      vimPlugins.vim-airline
-      vimPlugins.vim-airline-themes
       vimPlugins.vim-gitgutter
       vimPlugins.onehalf
       vimPlugins.zenburn
@@ -34,11 +32,12 @@ in
       vimPlugins.nvim-nonicons
       vimPlugins.nvim-web-devicons
       vimPlugins.neotest
-      vimPlugins.nvim-dap-go
       vimPlugins.cmp-nvim-lua
       vimPlugins.cmp-git
       vimPlugins.cmp-conventionalcommits
       vimPlugins.cmp-dap
+      vimPlugins.toggleterm-nvim
+      vimPlugins.lualine-nvim
     ] ++ customPlugins;
     extraConfig = builtins.readFile ../vim/vimrc;
   };
@@ -46,9 +45,12 @@ in
   home.packages = with pkgs; [
     netcoredbg
     gopls
-    rnix-lsp
+    #rnix-lsp
+    nixpkgs-fmt
+    nil
     omnisharp-roslyn
     sumneko-lua-language-server
+    yaml-language-server
   ];
 }
 

@@ -23,15 +23,11 @@
       mkNix = import ./lib/mkNix.nix;
       mkHome = import ./lib/mkHome.nix;
       system = "x86_64-linux";
-      # TODO: if this works, I should make a simpler method to pull from an array of inputs
-      overlays = [
-        (
-          self: super: {
-            lua-language-server = inputs.unstable.legacyPackages.${system}.lua-language-server;
-            nvim-lspconfig = inputs.unstable.legacyPackages.${system}.nvim-lspconfig;
-          }
-        )
-      ];
+      myOverrides = [ "nil" "nvim-lspconfig" "lua-language-server" ];
+      # TODO: move this stuff to keep the flake clean from various code
+      myFunctor = registry: overrides: self: super:
+        builtins.listToAttrs (builtins.map (x: { name = x; value = registry.${x}; }) overrides);
+      overlays = [ (myFunctor inputs.unstable.legacyPackages.${system} myOverrides) ];
     in
     {
       lib = {

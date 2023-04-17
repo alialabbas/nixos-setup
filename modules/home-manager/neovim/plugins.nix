@@ -92,5 +92,15 @@
       sha256 = "sha256-k/PLgqNyhY5OCRpdcul/YBKLI8bs8Ukaj8y3C9YEjN4=";
     };
   };
+  yaml-companion-nvim = vimUtils.buildVimPluginFrom2Nix {
+    pname = "yaml-companion-nvim";
+    version = "2023-03-03";
+    src = fetchFromGitHub {
+      owner = "someone-stole-my-name";
+      repo = "yaml-companion.nvim";
+      rev = "4de1e1546abc461f62dee02fcac6a02debd6eb9e";
+      sha256 = "sha256-BmX7hyiIMQfcoUl09Y794HrSDq+cj93T+Z5u3e5wqLc=";
+    };
+  };
 }
 

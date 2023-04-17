@@ -48,8 +48,8 @@ set wildmode=longest:full,full
 set wop=pum
 
 " Tabs
-nnoremap <C-t> :tabnew<CR>
-nnoremap <C-c> :tabclose<CR>
+" nnoremap <C-t> :tabnew<CR>
+" nnoremap <C-c> :tabclose<CR>
 nnoremap <C-[> :tabprevious<CR>
 nnoremap <C-]> :tabnext<CR>
 
@@ -97,11 +97,11 @@ let g:bufferline_echo = 0
 let g:airline_powerline_fonts = 1
 
 " GitGutter
-function! GitStatus()
-  let [a,m,r] = GitGutterGetHunkSummary()
-  return printf('+%d ~%d -%d', a, m, r)
-endfunction
-set statusline+=%{GitStatus()}
+" function! GitStatus()
+"   let [a,m,r] = GitGutterGetHunkSummary()
+"   return printf('+%d ~%d -%d', a, m, r)
+" endfunction
+" set statusline+=%{GitStatus()}
 
 autocmd BufWritePost * GitGutter
 
@@ -485,7 +485,24 @@ require'lspconfig'.sumneko_lua.setup {
 }
 
 -- Omnisharp is not in this list because it needs special handling
-local servers = { "gopls", "rnix", "ansiblels" }
+local caps = vim.tbl_extend(
+      'keep',
+      vim.lsp.protocol.make_client_capabilities(),
+      require('cmp_nvim_lsp').default_capabilities()
+    );
+require('lspconfig').nil_ls.setup {
+    on_attach = on_attach,
+    capabilities = capabilities,
+    settings = {
+        ['nil'] = {
+            formatting = {
+                command = { "nixpkgs-fmt" },
+            },
+        },
+    },
+}
+
+local servers = { "gopls", "ansiblels"}
 for _, lsp in ipairs(servers) do
     require('lspconfig')[lsp].setup {
         on_attach = on_attach,
@@ -551,6 +568,23 @@ vim.g.dotnet_get_dll_path = function()
     return vim.g['dotnet_last_dll_path']
 end
 
+-- Do I need to return this string to a array
+vim.g.get_dap_args = function ()
+    local getUserArgs = function()
+        return vim.fn.input('argments to be passed to your application')
+    end
+
+    if vim.g['dap_args'] == nil then
+        vim.g['dap_args'] = getUserArgs()
+    else
+        if vim.fn.confirm('Do you want to use the same args' .. vim.g['dap_args'], '&yes\n&no', 2) == 1 then
+            vim.g['dap_args'] = getUserArgs()
+        end
+    end
+
+    return vim.g['dap_args']
+end
+
 local config = {
   {
     type = "netcoredbg",
@@ -562,6 +596,7 @@ local config = {
         end
         return vim.g.dotnet_get_dll_path()
     end,
+    args = function() return vim.split(vim.g.get_dap_args(), ' ') end
   },
 }
 
@@ -572,10 +607,50 @@ dap.adapters.netcoredbg = {
   args = {'--interpreter=vscode'}
 }
 
-require('dap-go').setup()
-
 dap.configurations.cs = config
 dap.configurations.fsharp = config
+
+-- Go dap adapter and configurations -- TODO: could add attach request and other ones
+dap.adapters.go = {
+    type = 'server',
+    port = '${port}',
+    executable = {
+        command = 'dlv',
+        args = { 'dap', '-l', '127.0.0.1:${port}'},
+    },
+}
+
+dap.configurations.go = {
+    {
+       type = "go",
+       name = "debug go.mod",
+       request = "launch",
+       program = "${fileDirname}",
+       args = function() return vim.split(vim.g.get_dap_args(), ' ') end
+    },
+    {
+       type = "go",
+       name = "Debug file",
+       request = "launch",
+       program = "${file}",
+       args = function() return vim.split(vim.g.get_dap_args(), ' ') end
+    },
+    {
+       type = "go",
+       name = "Debug test file",
+       request = "launch",
+       program = "${file}",
+       mode = "test",
+    },
+    {
+        type = "go",
+        name = "Debug test go.mod",
+        request = "launch",
+        program = "${fileDirname}",
+        mode = "test",
+    }
+}
+
 
 require("neotest").setup({
   adapters = {
@@ -620,5 +695,44 @@ require('neogen').setup {
     },
 }
 
+local Terminal = require("toggleterm.terminal").Terminal
+require('toggleterm').setup{
+    shade_terminals = false,
+}
+
+local nixrepl = Terminal:new({
+    cmd = "nix repl",
+    on_open = function(term)
+        vim.cmd("startinsert!")
+        vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", opts)
+    end,
+    on_close = function(term)
+        vim.cmd("startinsert!")
+    end,
+})
+
+vim.api.nvim_create_user_command('NixRepl', function() nixrepl:toggle() end, { nargs = 0 })
+
+-- Terminal keymaps
+vim.keymap.set('t', '<esc>', [[<C-\><C-n>]], opts) -- sane people mapping to go out of focus
+vim.keymap.set('n', '<C-T>', ':ToggleTerm<CR>', opts)
+
+-- TODO: Snippet with cmp-nvim is a bit sketchy but this will suffice for now
+local cfg = require("yaml-companion").setup({
+    lspconfig = {
+        on_attach = on_attach,
+        capabilities = capabilities,
+    },
+})
+require("telescope").load_extension("yaml_schema")
+require("lspconfig")["yamlls"].setup(cfg)
+-- TODO: move airline to vim only
+require('lualine').setup({
+    options = {
+        disabled_filetypes = {
+            statusline = { 'SidebarNvim' }
+        },
+    },
+})
 EOF
 endif
