@@ -20,7 +20,6 @@ in
       vimPlugins.omnisharp-extended-lsp-nvim
       vimPlugins.telescope-nvim
       vimPlugins.vim-fugitive
-      vimPlugins.fzf-vim
       vimPlugins.vim-gitgutter
       vimPlugins.onehalf
       vimPlugins.zenburn
