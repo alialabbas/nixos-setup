@@ -51,13 +51,13 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
 vim.cmd [[ hi Pmenu guifg=#dcdfe4 ctermfg=188 ]]
 vim.cmd [[ hi Pmenu gui=NONE cterm=NONE ]]
 vim.cmd [[ hi Pmenu guibg=#313640 ctermbg=237 ]]
+vim.cmd [[ map <leader>y "+y ]]
+vim.cmd [[ map <leader>p "+p]]
 
 ------ GENERIC KEYMAPS
 vim.api.nvim_set_keymap("n", "<C-[>", ":tabprevious<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<C-]>", ":tabnext<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("c", "w!!", "%!sudo tee > /dev/null %", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("", "<leader>y", "+y", { noremap = true, silent = true })
-vim.api.nvim_set_keymap("", "<leader>p", "+p", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<leader>/", ":nohlsearch<CR>", { noremap = true, silent = true })
 
 ------ PLUGINS
