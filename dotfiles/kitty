@@ -65,3 +65,5 @@ color14  #56b6c2
 # white
 color7   #dcdfe4
 color15  #dcdfe4
+
+linux_display_server x11
