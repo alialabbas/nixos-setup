@@ -383,7 +383,23 @@ require("lspconfig").nil_ls.setup {
     },
 }
 
-local servers = { "gopls", "ansiblels" }
+-- Simple handler to prefix ansible file location with file scheme which what neovim client expect
+local function handler(err, result, ctx, config)
+    result[1].targetUri = "file://" .. result[1].targetUri
+
+    return vim.lsp.handlers['textDocument/definition'](err, result, ctx, config)
+end
+
+require('lspconfig').ansiblels.setup {
+    on_attach = on_attach,
+    capabilities = capabilities,
+    handlers = {
+        ["textDocument/definition"] = handler
+    }
+}
+
+
+local servers = { "gopls" }
 for _, lsp in ipairs(servers) do
     require("lspconfig")[lsp].setup {
         on_attach = on_attach,
