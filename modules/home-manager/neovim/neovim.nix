@@ -37,6 +37,7 @@ in
       vimPlugins.cmp-dap
       vimPlugins.toggleterm-nvim
       vimPlugins.lualine-nvim
+      vimPlugins.cmp-nvim-lsp-signature-help
     ] ++ customPlugins;
     extraLuaConfig = builtins.readFile ../neovim/init.lua;
   };

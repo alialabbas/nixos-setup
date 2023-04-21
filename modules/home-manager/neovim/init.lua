@@ -442,6 +442,7 @@ cmp.setup {
         { name = "git" },
         { name = "conventionalcommits" },
         { name = "buffer" },
+        { name = 'nvim_lsp_signature_help' },
     }
 }
 cmp.setup.filetype({ 'xml' }, {
