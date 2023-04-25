@@ -59,7 +59,8 @@ vim.api.nvim_set_keymap("n", "<C-[>", ":tabprevious<CR>", { noremap = true, sile
 vim.api.nvim_set_keymap("n", "<C-]>", ":tabnext<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("c", "w!!", "%!sudo tee > /dev/null %", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<leader>/", ":nohlsearch<CR>", { noremap = true, silent = true })
-
+vim.api.nvim_del_keymap("n", "<ESC>")
+--
 ------ PLUGINS
 
 ------ TREESITTER
@@ -125,12 +126,18 @@ dapui.setup()
 
 
 dap.listeners.after.event_initialized["dapui_config"] = function()
+    require("sidebar-nvim").close()
+    require("neotest").summary.close()
     dapui.open({})
 end
 dap.listeners.before.event_terminated["dapui_config"] = function()
+    require("sidebar-nvim").open()
+    require("dap").repl.close()
     dapui.close({})
 end
 dap.listeners.before.event_exited["dapui_config"] = function()
+    require("sidebar-nvim").open()
+    require("dap").repl.close()
     dapui.close({})
 end
 
@@ -512,6 +519,14 @@ vim.keymap.set("n", "<C-T>", ":ToggleTerm<CR>", opts)
 
 ----- STATUSLINE
 require("lualine").setup({
+    tabline = {
+        lualine_a = { 'buffers' },
+        lualine_b = {},
+        lualine_c = {},
+        lualine_x = {},
+        lualine_y = {},
+        lualine_z = { 'tabs' }
+    },
     options = {
         disabled_filetypes = {
             statusline = {
@@ -519,7 +534,7 @@ require("lualine").setup({
             }
         },
     },
-    extensions = { 'nvim-dap-ui' }
+    extensions = { 'nvim-dap-ui', 'toggleterm', 'fugitive', 'quickfix', }
 })
 
 
