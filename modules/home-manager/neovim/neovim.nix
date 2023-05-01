@@ -11,33 +11,35 @@ in
 {
   programs.neovim = {
     enable = true;
-    plugins = with pkgs; [
-      (vimPlugins.nvim-treesitter.withPlugins (plugins: pkgs.tree-sitter.allGrammars))
-      vimPlugins.nvim-treesitter-context
-      vimPlugins.comment-nvim
-      vimPlugins.refactoring-nvim
-      vimPlugins.nvim-lspconfig
-      vimPlugins.omnisharp-extended-lsp-nvim
-      vimPlugins.telescope-nvim
-      vimPlugins.vim-fugitive
-      vimPlugins.vim-gitgutter
-      vimPlugins.onehalf
-      vimPlugins.zenburn
-      vimPlugins.vim-nixhash
-      vimPlugins.vim-nix
-      vimPlugins.ansible-vim
-      vimPlugins.nvim-dap
-      vimPlugins.nvim-dap-ui
-      vimPlugins.nvim-nonicons
-      vimPlugins.nvim-web-devicons
-      vimPlugins.neotest
-      vimPlugins.cmp-nvim-lua
-      vimPlugins.cmp-git
-      vimPlugins.cmp-conventionalcommits
-      vimPlugins.cmp-dap
-      vimPlugins.toggleterm-nvim
-      vimPlugins.lualine-nvim
-      vimPlugins.cmp-nvim-lsp-signature-help
+    plugins = with pkgs.vimPlugins; [
+      (nvim-treesitter.withPlugins (plugins: pkgs.tree-sitter.allGrammars))
+      nvim-treesitter-context
+      comment-nvim
+      refactoring-nvim
+      nvim-lspconfig
+      omnisharp-extended-lsp-nvim
+      telescope-nvim
+      vim-fugitive
+      vim-gitgutter
+      onehalf
+      zenburn
+      vim-nixhash
+      vim-nix
+      ansible-vim
+      nvim-dap
+      nvim-dap-ui
+      nvim-nonicons
+      nvim-web-devicons
+      neotest
+      cmp-nvim-lua
+      cmp-git
+      cmp-conventionalcommits
+      cmp-dap
+      toggleterm-nvim
+      lualine-nvim
+      cmp-nvim-lsp-signature-help
+      telescope-ui-select-nvim
+      dressing-nvim
     ] ++ customPlugins;
     extraLuaConfig = builtins.readFile ../neovim/init.lua;
   };

@@ -55,6 +55,7 @@ vim.cmd [[ map <leader>y "+y ]]
 vim.cmd [[ map <leader>p "+p]]
 
 ------ GENERIC KEYMAPS
+vim.api.nvim_set_keymap("n", "<C-C>", ":tabclose<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<C-[>", ":tabprevious<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<C-]>", ":tabnext<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("c", "w!!", "%!sudo tee > /dev/null %", { noremap = true, silent = true })
@@ -97,13 +98,20 @@ require("telescope").setup({
         entry_prefix = "   ",
     },
 })
+require('telescope').load_extension('ui-select')
 require("telescope").load_extension("yaml_schema")
+require("dressing").setup({
+    input = {
+        relative = "editor",
+        winhighlight = "FloatTitle:Normal", -- fix float title visibilty
+    }
+})
+
 vim.api.nvim_set_keymap("n", "<leader>tt", ":Telescope<CR>", { noremap = true, silent = true })
 
 ------ DAP
 local defaultKeymapOptions = { noremap = true, silent = true }
 vim.api.nvim_set_keymap("n", "<F5>", ":DapContinue<CR>", defaultKeymapOptions)
-vim.api.nvim_set_keymap("n", "<leader><F5>", ":DapTerminate<CR>", defaultKeymapOptions)
 vim.api.nvim_set_keymap("n", "<F9>", ":DapToggleBreakpoint<CR>", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<leader><F9>", [[ <Esc><Cmd>lua require('dap').clear_breakpoints()<CR>]],
     { noremap = true, silent = true })
@@ -124,73 +132,83 @@ vim.fn.sign_define("DapStopped", { text = "", texthl = "DapStopped", linehl =
 
 dapui.setup()
 
-
+local currWorkspace = vim.fn.getcwd()
 dap.listeners.after.event_initialized["dapui_config"] = function()
+    vim.api.nvim_set_current_dir(currWorkspace)
     require("sidebar-nvim").close()
     require("neotest").summary.close()
     dapui.open({})
 end
 dap.listeners.before.event_terminated["dapui_config"] = function()
+    vim.api.nvim_set_current_dir(currWorkspace)
     require("sidebar-nvim").open()
     require("dap").repl.close()
     dapui.close({})
 end
 dap.listeners.before.event_exited["dapui_config"] = function()
+    vim.api.nvim_set_current_dir(currWorkspace)
     require("sidebar-nvim").open()
     require("dap").repl.close()
     dapui.close({})
 end
 
+
 vim.g.dotnet_build_project = function()
-    local default_path = vim.fn.getcwd() .. "/"
-    if vim.g["dotnet_last_proj_path"] ~= nil then
-        default_path = vim.g["dotnet_last_proj_path"]
-    end
-    local path = vim.fn.input("Path to your *proj file", default_path, "file")
-    vim.g["dotnet_last_proj_path"] = path
-    local cmd = "dotnet build -c Debug " .. path .. " > /dev/null"
-    print("")
-    print("Cmd to execute: " .. cmd)
-    local f = os.execute(cmd)
-    if f == 0 then
-        print("\nBuild: ✔️ ")
-    else
-        print("\nBuild: ❌ (code: " .. f .. ")")
-    end
+    return coroutine.create(function(dap_run_co)
+        local result = vim.fn.system({ 'find', '.', '-name', '*.csproj' })
+        local items = vim.split(result, "\n")
+
+        vim.ui.select(items, { label = '> ' }, function(choice)
+            local cmd = "dotnet build -c Debug " .. choice .. " > /dev/null"
+            print("")
+            print("Cmd to execute: " .. cmd)
+            local f = os.execute(cmd)
+            if f == 0 then
+                print("\nBuild: ✔️ ")
+            else
+                print("\nBuild: ❌ (code: " .. f .. ")")
+                return
+            end
+
+            result = vim.fn.system({ 'find', '.', '-name', '*.dll', '-not', '-path', '**/obj/*' })
+            items = vim.split(result, "\n")
+            vim.ui.select(items, { label = '> ' }, function(choice)
+                coroutine.resume(dap_run_co, choice)
+            end)
+        end)
+    end)
 end
 
-vim.g.dotnet_get_dll_path = function()
-    local request = function()
-        return vim.fn.input("Path to dll", vim.fn.getcwd() .. "/bin/Debug/net6.0", "file")
-    end
-
-    if vim.g["dotnet_last_dll_path"] == nil then
-        vim.g["dotnet_last_dll_path"] = request()
-    else
-        if vim.fn.confirm("Do you want to change the path to dll?\n" .. vim.g["dotnet_last_dll_path"], "&yes\n&no", 2) ==
-            1 then
-            vim.g["dotnet_last_dll_path"] = request()
-        end
-    end
-
-    return vim.g["dotnet_last_dll_path"]
-end
 
 vim.g.get_dap_args = function()
-    local getUserArgs = function()
-        return vim.fn.input("\nArgments to be passed to your application\n")
-    end
-
-    if vim.g["dap_args"] == nil then
-        vim.g["dap_args"] = getUserArgs()
-    else
-        if vim.fn.confirm("Do you want to use the same args?\n" .. vim.g["dap_args"], "&yes\n&no", 2) == 1 then
-            vim.g["dap_args"] = getUserArgs()
+    return coroutine.create(function(dap_run_co)
+        if vim.g["dap_args"] ~= nil then
+            vim.ui.select({ "yes", "no" }, { prompt = "Do you want to use the same args", label = ">" },
+                function(choice)
+                    if choice == "yes" then
+                        coroutine.resume(dap_run_co, vim.split(vim.g["dap_args"], " "))
+                    else
+                        vim.ui.input({
+                            prompt = "Enter Arguments:",
+                        }, function(input)
+                            vim.g["dap_args"] = input
+                            local args = vim.split(input, " ")
+                            coroutine.resume(dap_run_co, args)
+                        end)
+                    end
+                end)
+        else
+            vim.ui.input({
+                prompt = "Enter Arguments:",
+            }, function(input)
+                vim.g["dap_args"] = input
+                local args = vim.split(input, " ")
+                coroutine.resume(dap_run_co, args)
+            end)
         end
-    end
-
-    return vim.g["dap_args"]
+    end)
 end
+
 
 local config = {
     {
@@ -198,12 +216,9 @@ local config = {
         name = "launch - netcoredbg",
         request = "launch",
         program = function()
-            if vim.fn.confirm("Should I recompile first?", "&yes\n&no", 2) == 1 then
-                vim.g.dotnet_build_project()
-            end
-            return vim.g.dotnet_get_dll_path()
+            return vim.g.dotnet_build_project()
         end,
-        args = function() return vim.split(vim.g.get_dap_args(), " ") end
+        args = function() return vim.g.get_dap_args() end
     },
 }
 
@@ -215,9 +230,7 @@ dap.adapters.netcoredbg = {
 }
 
 dap.configurations.cs = config
-dap.configurations.fsharp = config
 
--- Go dap adapter and configurations -- TODO: could add attach request and other ones
 dap.adapters.go = {
     type = "server",
     port = "${port}",
@@ -227,20 +240,33 @@ dap.adapters.go = {
     },
 }
 
+local get_go_mod = function(path)
+    return coroutine.create(function(dap_run_co)
+        local result = vim.fn.system({ 'find', path, '-name', 'go.mod' }) -- this could be replaced vim.fn.glob
+        local items = vim.split(result, '\n')
+
+        vim.ui.select(items, { label = '>' }, function(choice)
+            local dir = vim.fn.fnamemodify(choice, ":p:h")
+            vim.api.nvim_set_current_dir(dir)
+            coroutine.resume(dap_run_co, "${fileDirname}")
+        end)
+    end)
+end
+
 dap.configurations.go = {
     {
         type = "go",
         name = "debug go.mod",
         request = "launch",
-        program = "${fileDirname}",
-        args = function() return vim.split(vim.g.get_dap_args(), " ") end
+        program = function() return get_go_mod('cmd') end,
+        args = function() return vim.g.get_dap_args() end
     },
     {
         type = "go",
         name = "Debug file",
         request = "launch",
         program = "${file}",
-        args = function() return vim.split(vim.g.get_dap_args(), " ") end
+        args = function() return vim.g.get_dap_args() end
     },
     {
         type = "go",
@@ -253,7 +279,7 @@ dap.configurations.go = {
         type = "go",
         name = "Debug test go.mod",
         request = "launch",
-        program = "${fileDirname}",
+        program = function() return get_go_mod('.') end,
         mode = "test",
     }
 }
@@ -319,7 +345,7 @@ local on_attach = function(client, bufnr)
 
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
     vim.keymap.set("n", "gD", vim.lsp.buf.declaration, bufopts)
-    vim.keymap.set("n", "gd", vim.lsp.buf.definition, bufopts)
+    vim.keymap.set("n", "gd", ":Telescope lsp_definitions<CR>", bufopts)
     vim.keymap.set("n", "K", vim.lsp.buf.hover, bufopts)
     vim.keymap.set("n", "gi", vim.lsp.buf.implementation, bufopts)
     vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, bufopts)
@@ -331,7 +357,7 @@ local on_attach = function(client, bufnr)
     vim.keymap.set("n", "<space>D", vim.lsp.buf.type_definition, bufopts)
     vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, bufopts)
     vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action, bufopts)
-    vim.keymap.set("n", "gr", vim.lsp.buf.references, bufopts)
+    vim.keymap.set("n", "gr", ":Telescope lsp_references<CR>", bufopts)
     vim.keymap.set("n", "<space>f", function() vim.lsp.buf.format { async = true } end, bufopts)
 end
 
@@ -502,15 +528,26 @@ require("toggleterm").setup {
 local nixrepl = Terminal:new({
     cmd = "nix repl",
     on_open = function(term)
-        vim.cmd("startinsert!")
         vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", opts)
-    end,
-    on_close = function(term)
-        vim.cmd("startinsert!")
     end,
 })
 
 vim.api.nvim_create_user_command("NixRepl", function() nixrepl:toggle() end, { nargs = 0 })
+
+local getfile = function()
+    local currbuf = vim.api.nvim_buf_get_name(0)
+    return "glow " .. currbuf
+end
+local rendermd = Terminal:new({
+    cmd = getfile(),
+    direction = "tab",
+    start_in_insert = false,
+    close_on_exit = false,
+    on_open = function(term)
+        vim.api.nvim_buf_set_keymap(term.bufnr, "n", "q", "<cmd>close<CR>", opts)
+    end,
+})
+vim.api.nvim_create_user_command("RenderMD", function() rendermd:toggle() end, { nargs = 0 })
 
 -- Terminal keymaps
 vim.keymap.set("t", "<esc>", [[<C-\><C-n>]], opts) -- sane people mapping to go out of focus
