@@ -40,6 +40,7 @@ in
       cmp-nvim-lsp-signature-help
       telescope-ui-select-nvim
       dressing-nvim
+      vim-helm
     ] ++ customPlugins;
     extraLuaConfig = builtins.readFile ../neovim/init.lua;
   };
