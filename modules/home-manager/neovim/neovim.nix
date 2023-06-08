@@ -12,7 +12,8 @@ in
   programs.neovim = {
     enable = true;
     plugins = with pkgs.vimPlugins; [
-      (nvim-treesitter.withPlugins (plugins: pkgs.tree-sitter.allGrammars))
+      #(nvim-treesitter.withPlugins (plugins: pkgs.tree-sitter.allGrammar))
+      nvim-treesitter.withAllGrammars
       nvim-treesitter-context
       comment-nvim
       refactoring-nvim
