@@ -13,7 +13,7 @@ vim.o.writebackup = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.autoread = true -- autoreload modified files
-vim.o.list = true -- Show hidden characters
+vim.o.list = true     -- Show hidden characters
 vim.o.t_Co = 256
 vim.o.showmatch = true
 vim.o.showmode = true
@@ -53,6 +53,8 @@ vim.cmd [[ hi Pmenu gui=NONE cterm=NONE ]]
 vim.cmd [[ hi Pmenu guibg=#313640 ctermbg=237 ]]
 vim.cmd [[ map <leader>y "+y ]]
 vim.cmd [[ map <leader>p "+p]]
+--vim.cmd [[ autocmd BufRead,BufNewFile */templates/*.yaml,*/templates/*.tpl,*.gotmpl,helmfile*.yaml set ft=helm ]]
+--vim.cmd [[ autocmd FileType helm setlocal commentstring={{/*\ %s\ */}} ]]
 
 ------ GENERIC KEYMAPS
 vim.api.nvim_set_keymap("n", "<C-C>", ":tabclose<CR>", { noremap = true, silent = true })
@@ -73,7 +75,7 @@ require "nvim-treesitter.configs".setup {
     playground = {
         enable = true,
         disable = {},
-        updatetime = 25, -- Debounced time for highlighting nodes in the playground from source code
+        updatetime = 25,         -- Debounced time for highlighting nodes in the playground from source code
         persist_queries = false, -- Whether the query persists across vim sessions
         keybindings = {
             toggle_query_editor = "o",
@@ -142,7 +144,6 @@ dap.listeners.after.event_initialized["dapui_config"] = function()
 end
 dap.listeners.before.event_terminated["dapui_config"] = function()
     vim.api.nvim_set_current_dir(currWorkspace)
-    require("sidebar-nvim").open()
     require("dap").repl.close()
     dapui.close({})
 end
@@ -360,6 +361,8 @@ local on_attach = function(client, bufnr)
     vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action, bufopts)
     vim.keymap.set("n", "gr", ":Telescope lsp_references<CR>", bufopts)
     vim.keymap.set("n", "<space>f", function() vim.lsp.buf.format { async = true } end, bufopts)
+
+    client.server_capabilities.semanticTokensProvider = nil
 end
 
 -- TODO: vim.tbl_extend("force", table1, table2, ...) to have a basic config and then overrides for each
@@ -377,7 +380,7 @@ local config = {
 
 require "lspconfig".omnisharp.setup(config)
 
-require "lspconfig".sumneko_lua.setup {
+require "lspconfig".lua_ls.setup {
     on_attach = on_attach,
     capabilities = capabilities,
     settings = {
@@ -436,7 +439,7 @@ require('lspconfig').ansiblels.setup {
 }
 
 
-local servers = { "gopls" }
+local servers = { "gopls", "helm_ls" }
 for _, lsp in ipairs(servers) do
     require("lspconfig")[lsp].setup {
         on_attach = on_attach,
@@ -492,8 +495,8 @@ require("cmp_git").setup()
 ------ SIDEBAR
 local sidebar = require("sidebar-nvim")
 sidebar.setup({
-    open = true,
-    sections = { "git", "diagnostics", "todos", "symbols", "buffers", "files", "containers" },
+    open = false,
+    sections = { "git", "todos", "buffers", "files" },
     todos = {
         icon = "",
         ignored_paths = { "~" },
@@ -609,11 +612,11 @@ function source:complete(params, callback)
     local cur_col = params.context.cursor.col
 
     local packageRef = string.find(cur_line, 'ProjectReference')
-    if packageRef ~= nil then return end -- we are on a package ref element, ignore it
+    if packageRef ~= nil then return end                          -- we are on a package ref element, ignore it
 
     local nuget_name = string.match(cur_line, 'Include="([^"]*)') -- capture the string after include only
 
-    if nuget_name == nil then return end -- we need at least an include tag to do something useful here
+    if nuget_name == nil then return end                          -- we need at least an include tag to do something useful here
     local find_version = false
 
     local _, versionCol = string.find(cur_line, "Version")
