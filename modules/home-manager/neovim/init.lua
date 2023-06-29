@@ -439,7 +439,7 @@ require('lspconfig').ansiblels.setup {
 }
 
 
-local servers = { "gopls", "helm_ls" }
+local servers = { "gopls", "helm_ls", "jsonnet_ls" }
 for _, lsp in ipairs(servers) do
     require("lspconfig")[lsp].setup {
         on_attach = on_attach,
