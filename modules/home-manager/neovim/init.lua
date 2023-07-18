@@ -53,6 +53,11 @@ vim.cmd [[ hi Pmenu gui=NONE cterm=NONE ]]
 vim.cmd [[ hi Pmenu guibg=#313640 ctermbg=237 ]]
 vim.cmd [[ map <leader>y "+y ]]
 vim.cmd [[ map <leader>p "+p]]
+
+-- WSL is special, set the browser to wslview. NOTE: we are not using $WSL_ENV since that is not set in wslg apps
+if vim.cmd.WSL_DISTOR_NAME ~= nil then
+    vim.g.netrw_browsex_viewer = "wslview"
+end
 --vim.cmd [[ autocmd BufRead,BufNewFile */templates/*.yaml,*/templates/*.tpl,*.gotmpl,helmfile*.yaml set ft=helm ]]
 --vim.cmd [[ autocmd FileType helm setlocal commentstring={{/*\ %s\ */}} ]]
 
@@ -63,11 +68,14 @@ vim.api.nvim_set_keymap("n", "<C-]>", ":tabnext<CR>", { noremap = true, silent =
 vim.api.nvim_set_keymap("c", "w!!", "%!sudo tee > /dev/null %", { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<leader>/", ":nohlsearch<CR>", { noremap = true, silent = true })
 vim.api.nvim_del_keymap("n", "<ESC>")
---
+
 ------ PLUGINS
 
 ------ TREESITTER
 require "nvim-treesitter.configs".setup {
+    indent = {
+        enable = false,
+    },
     highlight = {
         enable = true
     },
@@ -91,6 +99,12 @@ require "nvim-treesitter.configs".setup {
         },
     }
 }
+
+vim.cmd [[ set foldmethod=expr ]]
+vim.cmd [[ set foldexpr=nvim_treesitter#foldexpr() ]]
+vim.cmd [[ set nofoldenable ]]
+vim.opt.foldcolumn = "1"
+vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:,diff:/]]
 
 ------ TELESCOPE
 local icons = require("nvim-nonicons")
@@ -260,7 +274,7 @@ dap.configurations.go = {
         type = "go",
         name = "debug go.mod",
         request = "launch",
-        program = function() return get_go_mod('cmd') end,
+        program = function() return get_go_mod('.') end,
         args = function() return vim.g.get_dap_args() end
     },
     {
@@ -286,9 +300,12 @@ dap.configurations.go = {
     }
 }
 
-
 ------ NEOTEST
 require("neotest").setup({
+    status = {
+        signs = false,
+        virtual_text = true,
+    },
     adapters = {
         require("neotest-dotnet"),
         require("neotest-go")({
@@ -342,6 +359,12 @@ vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
 vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist, opts)
 
+local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
+for type, icon in pairs(signs) do
+    local hl = "DiagnosticSign" .. type
+    vim.fn.sign_define(hl, { text = icon, texthl = hl })
+end
+
 local on_attach = function(client, bufnr)
     vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
@@ -373,7 +396,6 @@ local config = {
         ["textDocument/definition"] = require("omnisharp_extended").handler,
     },
     cmd = { "OmniSharp", "--languageserver", "--hostPID", tostring(vim.fn.getpid()) },
-    -- rest of your settings
     on_attach = on_attach,
     capabilities = capabilities,
 }
@@ -454,7 +476,41 @@ local cfg = require("yaml-companion").setup({
     },
 })
 require("lspconfig")["yamlls"].setup(cfg)
+require("nvim-navic").setup({
+    icons = {
+        File = ' ',
+        Module = ' ',
+        Namespace = ' ',
+        Package = ' ',
+        Class = ' ',
+        Method = ' ',
+        Property = ' ',
+        Field = ' ',
+        Constructor = ' ',
+        Enum = ' ',
+        Interface = ' ',
+        Function = ' ',
+        Variable = ' ',
+        Constant = ' ',
+        String = ' ',
+        Number = ' ',
+        Boolean = ' ',
+        Array = ' ',
+        Object = ' ',
+        Key = ' ',
+        Null = ' ',
+        EnumMember = ' ',
+        Struct = ' ',
+        Event = ' ',
+        Operator = ' ',
+        TypeParameter = ' '
+    },
 
+    lsp = {
+        auto_attach = true,
+    },
+    click = true,
+})
 
 ------ AUTOCOMPLETE
 local cmp = require "cmp"
@@ -496,7 +552,7 @@ require("cmp_git").setup()
 local sidebar = require("sidebar-nvim")
 sidebar.setup({
     open = false,
-    sections = { "git", "todos", "buffers", "files" },
+    sections = { "git", "todos", "files" },
     todos = {
         icon = "",
         ignored_paths = { "~" },
@@ -560,13 +616,48 @@ vim.keymap.set("n", "<C-T>", ":ToggleTerm<CR>", opts)
 
 ----- STATUSLINE
 require("lualine").setup({
-    tabline = {
-        lualine_a = { 'buffers' },
-        lualine_b = {},
-        lualine_c = {},
-        lualine_x = {},
-        lualine_y = {},
-        lualine_z = { 'tabs' }
+    sections = {
+        lualine_c = {
+            {
+                'filename',
+                path = 1,
+                -- takes a function that is called when component is clicked with mouse.
+                on_click = function(_nb_of_clicks, _button, _modifiers)
+                    local filename = vim.fn.getreg('%')
+                    vim.cmd("call provider#clipboard#Call('set', [ ['" ..
+                        filename .. "'], 'v','\"'])")
+                end,
+            },
+        },
+        lualine_b = {
+            {
+                'branch',
+                on_click = function(_nb_of_clicks, _button, _modifiers)
+                    vim.cmd("Telescope git_branches")
+                end
+            },
+            {
+                'diff',
+                on_click = function(_nb_of_clicks, _button, _modifiers)
+                    vim.cmd("Telescope git_status")
+                end
+            },
+            {
+                'diagnostics',
+                sources = { 'nvim_diagnostic' },
+                on_click = function(_nb_of_clicks, _button, _modifiers)
+                    vim.cmd("Telescope diagnostics")
+                end
+            },
+        },
+        lualine_x = { 'encoding', 'fileformat',
+            {
+                'filetype',
+                on_click = function(_nb_of_clicks, _button, _modifiers)
+                    vim.cmd("Telescope filetypes")
+                end
+            }
+        },
     },
     options = {
         disabled_filetypes = {
@@ -652,3 +743,101 @@ end
 
 ---Register your source to nvim-cmp.
 require('cmp').register_source('csproj', source)
+
+local builtin = require("statuscol.builtin")
+cfg = {
+    setopt = true,
+    relculright = true,
+    ft_ignore = {
+        "SidebarNvim",
+        "neotest-summary",
+        "toggleterm",
+        "netrw",
+        "dapui_console",
+        "dapui_watches",
+        "dapui_stacks",
+        "dapui_breakpoints",
+        "dapui_scopes",
+        "dap-repl",
+    },
+    segments = {
+        {
+            -- Fold Markers
+            text = { builtin.foldfunc },
+            click = "v:lua.ScFa",
+        },
+        -- {
+        --     text = { " " },
+        -- },
+        {
+            -- Diagnostics
+            sign = { name = { "Diagnostic" }, maxwidth = 1, colwidth = 1, auto = false, fillchars = "" },
+            click = "v:lua.ScSa",
+        },
+        {
+            -- Dap
+            sign = {
+                name = { "DapBreakpoint", "DapStopped", },
+                maxwidth = 1,
+                colwidth = 1,
+                auto = false,
+                fillchars = ""
+            },
+            click = "v:lua.ScSa",
+        },
+        {
+            -- Line Numbers
+            text = { builtin.lnumfunc },
+            click = "v:lua.ScLa",
+        },
+        {
+            text = { " " }, -- Dummy space separator to make the UI look better
+        },
+        {
+            -- Git Signs
+            sign = {
+                name = { "GitSigns" },
+                maxwidth = 1,
+                colwidth = 1,
+                auto = false,
+                fillchar = "%#IndentBlankLineChar#│",
+                --fillchar = '▎',
+            },
+            click = "v:lua.ScSa",
+        },
+        {
+            text = { " " }, -- Dummy space separator to make the UI look better
+        },
+        {
+            -- All Other Signs
+            sign = {
+                name = { ".*" },
+                fillchar = "",
+                auto = false,
+            },
+            click = "v:lua.ScSa",
+        },
+    },
+}
+
+--
+require("statuscol").setup(cfg)
+
+local gitsincsCfg = {
+    signs = {
+        add    = { hl = 'GitSignsAdd', text = '┃ ', numhl = 'GitSignsAddNr', linehl = 'GitSignsAddLn' },
+        change = { hl = 'GitSignsChange', text = '┃ ', numhl = 'GitSignsChangeNr', linehl = 'GitSignsChangeLn' },
+        delete = { hl = 'GitSignsDelete', text = '┃ ', numhl = 'GitSignsDeleteNr', linehl = 'GitSignsDeleteLn' },
+    },
+}
+
+require('gitsigns').setup(gitsincsCfg)
+
+require("barbecue").setup()
+
+local barbarCfg = {
+    icons = {
+        buffer_number = true,
+    },
+}
+require('barbar').setup(barbarCfg)

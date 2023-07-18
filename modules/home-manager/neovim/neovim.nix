@@ -21,7 +21,6 @@ in
       omnisharp-extended-lsp-nvim
       telescope-nvim
       vim-fugitive
-      vim-gitgutter
       onehalf
       zenburn
       vim-nixhash
@@ -42,6 +41,11 @@ in
       telescope-ui-select-nvim
       dressing-nvim
       vim-helm
+      nvim-navic
+      statuscol-nvim
+      gitsigns-nvim
+      barbecue-nvim
+      barbar-nvim
     ] ++ customPlugins;
     extraLuaConfig = builtins.readFile ../neovim/init.lua;
   };
