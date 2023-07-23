@@ -102,5 +102,15 @@
       sha256 = "sha256-BmX7hyiIMQfcoUl09Y794HrSDq+cj93T+Z5u3e5wqLc=";
     };
   };
+  bookmarks-nvim = vimUtils.buildVimPluginFrom2Nix {
+    pname = "bookmarks-nvim";
+    version = "2023-07-06";
+    src = fetchFromGitHub {
+      owner = "tomasky";
+      repo = "bookmarks.nvim";
+      rev = "e51023c89512aec01158be69510547e54b1a4948";
+      sha256 = "sha256-C9GM2M3ljCNaarrOLqwp9T6XJWNtIxwLCwHXyym3w8E=";
+    };
+  };
 }
 

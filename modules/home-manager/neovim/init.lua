@@ -236,6 +236,12 @@ local config = {
         end,
         args = function() return vim.g.get_dap_args() end
     },
+    {
+        type = "netcoredbg",
+        name = "attach - netcoredbg",
+        request = "attach",
+        processId = require 'dap.utils'.pick_process,
+    }
 }
 
 
@@ -365,12 +371,17 @@ for type, icon in pairs(signs) do
     vim.fn.sign_define(hl, { text = icon, texthl = hl })
 end
 
+-- TODO: check file type then from the file type we just change the ccommand for certain things for telescope csharp files
 local on_attach = function(client, bufnr)
     vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
+    if client.name == "omnisharp" then
+        vim.keymap.set('n', 'gd', ":lua require('omnisharp_extended').telescope_lsp_definitions()<CR>", bufopts)
+    else
+        vim.keymap.set("n", "gd", ":Telescope lsp_definitions<CR>", bufopts)
+    end
     vim.keymap.set("n", "gD", vim.lsp.buf.declaration, bufopts)
-    vim.keymap.set("n", "gd", ":Telescope lsp_definitions<CR>", bufopts)
     vim.keymap.set("n", "K", vim.lsp.buf.hover, bufopts)
     vim.keymap.set("n", "gi", vim.lsp.buf.implementation, bufopts)
     vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, bufopts)
@@ -564,6 +575,7 @@ sidebar.setup({
         ignored_paths = { "%.git$", "bin", "obj", "~" }
     },
     hide_statusline = true,
+    bindings = { ["q"] = function() require("sidebar-nvim").close() end },
 })
 
 vim.keymap.set("n", "<S-B>", function() if sidebar.is_open() then sidebar.toggle() else sidebar.focus() end end)
@@ -741,6 +753,20 @@ function source:complete(params, callback)
     end
 end
 
+_G.BookmarkAction = function(minwid, clicks, button, mods)
+    -- Works nice, now all I have left is to hook into other mouse keys to make it support annotate
+
+    local mPos = vim.fn.getmousepos()
+    vim.api.nvim_command(string.format("%d", mPos.line))
+
+    if button == "l" then
+        vim.api.nvim_command('BookmarkToggle')
+    elseif button == "r" then
+        vim.api.nvim_command('BookmarkAnnotate')
+    end
+end
+
+
 ---Register your source to nvim-cmp.
 require('cmp').register_source('csproj', source)
 
@@ -790,8 +816,18 @@ cfg = {
             text = { builtin.lnumfunc },
             click = "v:lua.ScLa",
         },
+        -- {
+        --     text = { " " }, -- Dummy space separator to make the UI look better
+        -- },
         {
-            text = { " " }, -- Dummy space separator to make the UI look better
+            -- gosh all I want is a good way to annotate and know what got annotated and the reason, something sensible
+            sign = {
+                name = { "Bookmark", "BookmarkAnnotation" },
+                maxwidth = 1,
+                colwidth = 1,
+                auto = false,
+            },
+            click = "v:lua.BookmarkAction",
         },
         {
             -- Git Signs
@@ -805,9 +841,9 @@ cfg = {
             },
             click = "v:lua.ScSa",
         },
-        {
-            text = { " " }, -- Dummy space separator to make the UI look better
-        },
+        -- {
+        --     text = { " " }, -- Dummy space separator to make the UI look better
+        -- },
         {
             -- All Other Signs
             sign = {
@@ -816,11 +852,12 @@ cfg = {
                 auto = false,
             },
             click = "v:lua.ScSa",
-        },
+        }
     },
 }
 
 --
+
 require("statuscol").setup(cfg)
 
 local gitsincsCfg = {
@@ -839,5 +876,23 @@ local barbarCfg = {
     icons = {
         buffer_number = true,
     },
+    exclude_ft = { 'qf' },
 }
+
 require('barbar').setup(barbarCfg)
+
+require('telescope').load_extension('vim_bookmarks')
+
+-- Setup menu for easier navigation
+vim.keymap.set({ "v", "n" }, "<F22>", "<cmd>:popup Lsp<CR>")
+
+vim.cmd [[:amenu 500.400 PopUp.Lsp <cmd>:popup Lsp<CR> ]] -- Always the top menu
+vim.cmd [[:amenu 500.401 PopUp.Back <cmd>:execute "normal <C-o>"<CR> ]]
+vim.cmd [[:amenu 10.100 Lsp.Definition <cmd>:lua = vim.lsp.buf.definition()<CR>]]
+vim.cmd [[:amenu 10.110 Lsp.Peek\ Definition <cmd>:lua = vim.lsp.buf.hover()<CR>]]
+vim.cmd [[:amenu 10.120 Lsp.Type\ Definition <cmd>:lua vim.lsp.buf.type_definition()<CR>]]
+vim.cmd [[:amenu 10.130 Lsp.Implementations <cmd>:lua vim.lsp.buf.implementation<CR>]]
+vim.cmd [[:amenu 10.140 Lsp.References <cmd>:lua vim.lsp.buf.references()<CR>]]
+-- vim.cmd [[:amenu 10.150 Lsp.-sep- *]]
+vim.cmd [[:amenu 10.160 Lsp.Rename <cmd>:lua = vim.lsp.buf.rename()<CR>]]
+vim.cmd [[:amenu 10.170 Lsp.Code\ Actions <cmd>:lua = vim.lsp.buf.code_action()<CR>]]

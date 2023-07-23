@@ -7,12 +7,16 @@ let
     fetchFromGitHub = pkgs.fetchFromGitHub;
     buildNeovimPluginFrom2Nix = pkgs.neovimUtils.buildNeovimPluginFrom2Nix;
   });
+
+  myplugin = pkgs.vimUtils.buildVimPlugin {
+    name = "myplugin";
+    src = ./plugin/.;
+  };
 in
 {
   programs.neovim = {
     enable = true;
     plugins = with pkgs.vimPlugins; [
-      #(nvim-treesitter.withPlugins (plugins: pkgs.tree-sitter.allGrammar))
       nvim-treesitter.withAllGrammars
       nvim-treesitter-context
       comment-nvim
@@ -46,6 +50,9 @@ in
       gitsigns-nvim
       barbecue-nvim
       barbar-nvim
+      vim-bookmarks
+      telescope-vim-bookmarks-nvim
+      myplugin
     ] ++ customPlugins;
     extraLuaConfig = builtins.readFile ../neovim/init.lua;
   };
