@@ -471,8 +471,22 @@ require('lspconfig').ansiblels.setup {
     }
 }
 
+require('lspconfig').pylsp.setup {
+    on_attach = on_attach,
+    capabilities = capabilities,
+    settings = {
+        pylsp = {
+            plugins = {
+                ruff = {
+                    enabled = true,
+                    extendSelect = { "I" },
+                },
+            }
+        }
+    }
+}
 
-local servers = { "gopls", "helm_ls", "jsonnet_ls" }
+local servers = { "gopls", "helm_ls", "jsonnet_ls", "pyright" }
 for _, lsp in ipairs(servers) do
     require("lspconfig")[lsp].setup {
         on_attach = on_attach,
