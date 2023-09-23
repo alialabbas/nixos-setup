@@ -16,9 +16,13 @@
       url = "github:nix-community/NixOS-WSL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware";
+    };
   };
 
-  outputs = { self, nixpkgs, home-manager, nixos-wsl, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, nixos-wsl, nixos-hardware, ... }@inputs:
     let
       mkNix = import ./lib/mkNix.nix;
       mkHome = import ./lib/mkHome.nix;
@@ -55,12 +59,23 @@
         overlays = [ (import ./overlays/wsl.nix) ] ++ overlays;
       };
 
-      homeConfigurations.home-only = mkHome {
-        inherit nixpkgs home-manager;
+      nixosConfigurations.framework = mkNix {
+        inherit nixpkgs home-manager system;
+        name = "framework";
+        hostname = "dev-laptop";
+        modules = [ nixos-hardware.nixosModules.framework-13th-gen-intel ];
         user = "alialabbas";
         fullname = "Ali Alabbas";
         email = "ali.n.alabbas@gmail.com";
       };
+
+      homeConfigurations.home-only = mkHome
+        {
+          inherit nixpkgs home-manager;
+          user = "alialabbas";
+          fullname = "Ali Alabbas";
+          email = "ali.n.alabbas@gmail.com";
+        };
     };
 }
 
