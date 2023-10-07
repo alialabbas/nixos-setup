@@ -39,6 +39,12 @@
         mkHome = mkHome;
       };
 
+      nixosConfigurations.test = nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+        ];
+      };
+
       nixosConfigurations.hyperv = mkNix {
         inherit nixpkgs home-manager system;
         name = "hyperv";
@@ -69,13 +75,11 @@
         email = "ali.n.alabbas@gmail.com";
       };
 
-      homeConfigurations.home-only = mkHome
-        {
-          inherit nixpkgs home-manager;
-          user = "alialabbas";
-          fullname = "Ali Alabbas";
-          email = "ali.n.alabbas@gmail.com";
-        };
+      homeConfigurations.home-only = mkHome {
+        inherit nixpkgs home-manager;
+        user = "alialabbas";
+        fullname = "Ali Alabbas";
+        email = "ali.n.alabbas@gmail.com";
+      };
     };
 }
-

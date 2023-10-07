@@ -1,7 +1,8 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 
 let
   myPkgs = lib.attrValues (import ../../lib/pkgsBuilder.nix { inherit pkgs lib; });
+  rofi-network = pkgs.callPackage ../../rofi-network.nix { };
 in
 {
   xdg.enable = true;
@@ -22,6 +23,7 @@ in
     go
     yq
     nvd
+    rofi-network
   ] ++ myPkgs;
 
   home.sessionVariables = {
@@ -31,15 +33,25 @@ in
     EDITOR = "nvim";
     PAGER = "less -FirSwX";
     MANPAGER = "sh -c 'col -bx | ${pkgs.bat}/bin/bat -l man -p'";
+    TERMINAL = "${pkgs.kitty}/bin/kitty";
   };
 
   programs.readline = {
     enable = true;
-    extraConfig = builtins.readFile ../../dotfiles/inputrc;
+    variables = {
+      show-all-if-ambiguous = "on";
+      completion-ignore-case = "on";
+    };
+    extraConfig = ''
+      $if Bash
+        Space: magic-space
+      $endif
+    '';
+
   };
 
   programs.tmux = {
-    enable = true;
+    enable = lib.mkDefault true;
     terminal = "xterm-256color";
     secureSocket = false;
     keyMode = "vi";
@@ -64,7 +76,28 @@ in
 
   programs.kitty = {
     enable = true;
-    extraConfig = builtins.readFile ../../dotfiles/kitty;
+    #extraConfig = builtins.readFile ../../dotfiles/kitty;
+    font = {
+      package = (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; });
+      name = "Fira Code";
+      size = 10;
+    };
+    keybindings = {
+      "super+v" = "paste_from_clipboard";
+      "super+c" = "copy_or_interrupt";
+      #"super+k" = "combine : clear_terminal scroll active : send_text normal,application \\x0c";
+      "super+equal" = "increase_font_size";
+      "super+minus" = "decrease_font_size";
+      "super+shift+g" = "show_last_command_output";
+      "super+ctrl+p" = "scroll_to_prompt -1";
+      "super+ctrl+n" = "scroll_to_prompt 1";
+    };
+    settings = {
+      enable_audio_bell = false;
+      linux_display_server = "x11";
+    };
+    theme = "One Half Dark";
+    shellIntegration.enableBashIntegration = true;
   };
 
   programs.fzf = {

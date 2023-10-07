@@ -28,13 +28,12 @@ vim.o.syntax_on = true
 vim.wo.signcolumn = "yes"
 vim.wo.number = true
 
-------- Buffer Options
-vim.bo.tabstop = 4
-vim.bo.expandtab = true
-vim.bo.tabstop = 4
-vim.bo.softtabstop = 4
-vim.bo.shiftwidth = 4
-vim.bo.autoindent = true
+------- Options
+vim.opt.tabstop = 8
+vim.opt.expandtab = true
+vim.opt.softtabstop = 2
+vim.opt.shiftwidth = 4
+vim.opt.autoindent = true
 
 vim.cmd.colorscheme "onehalfdark"
 
@@ -58,8 +57,55 @@ vim.cmd [[ map <leader>p "+p]]
 if vim.cmd.WSL_DISTOR_NAME ~= nil then
     vim.g.netrw_browsex_viewer = "wslview"
 end
---vim.cmd [[ autocmd BufRead,BufNewFile */templates/*.yaml,*/templates/*.tpl,*.gotmpl,helmfile*.yaml set ft=helm ]]
---vim.cmd [[ autocmd FileType helm setlocal commentstring={{/*\ %s\ */}} ]]
+
+-- TODO: not sure why this make yamlls not loading to helm filetype but it works
+-- TODO: move this to a file specific behavior
+vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+    pattern = { '*/templates/*.yaml', '*/templates/*.tpl', '*.gotempl', 'helmfile*.yaml' },
+    callback = function()
+        vim.opt_local.filetype = 'helm'
+        vim.opt_local.shiftwidth = 2
+    end
+})
+
+vim.api.nvim_create_autocmd({ 'FileType', }, {
+    pattern = "helm",
+    command = [[ setlocal commentstring={{/*\ %s\ */}} ]]
+})
+
+-- TODO: ansible-vim is stupid, they look for playbook.yaml, not good enforcement on the file types based on paths
+-- Can both my settings and the plugin exist together or it might just be the same as vim-help
+-- TODO: with neovim the original plugin detecting the file doesn't work nicely with lspconfig somehow,
+-- All of these add the same as the upstream plugin + extend what is in there already
+-- TODO: languag-server has semantic highligting which makes the plugin useless for anything other than a default back when it is not running
+-- TODO: syntax from the plugin is failing to load because I have TS enabled for the whole thing and nothing is overriding it or providing it with tokens
+-- TODO: languageserver can take any file, should probably add yaml.ansible and yaml to it
+-- TODO: add the rest of the patterns here
+-- TODO: Vadlidate if we can remove the plugin and keep basic jinja2 highligting with basic vim ft
+vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+    pattern = {
+        '*/playbooks/*.yml',
+        '*/playbooks/*.yaml',
+        '*/tasks/*.yml',
+        '*/tasks/*.yaml',
+        '*/roles/*.yml',
+        '*/roles/*.yaml',
+        '*/handlers/*.yml',
+        '*/handlers/*.yaml',
+        '*/group_vars/*',
+        '*/host_vars/*',
+        'site.yml',
+        'site.yaml',
+        'main.yml',
+        'main.yaml',
+        'playbook.yml',
+        'playbook.yaml',
+    },
+    callback = function()
+        vim.opt_local.filetype = 'yaml.ansible'
+        vim.opt_local.shiftwidth = 2
+    end
+})
 
 ------ GENERIC KEYMAPS
 vim.api.nvim_set_keymap("n", "<C-C>", ":tabclose<CR>", { noremap = true, silent = true })
@@ -365,7 +411,7 @@ vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
 vim.keymap.set("n", "<space>q", vim.diagnostic.setloclist, opts)
 
-local signs = { Error = " ", Warn = " ", Hint = " ", Info = " " }
+local signs = { Error = '󰅚 ', Warn = '󰀪 ', Hint = '󰌶 ', Info = '󰋽 ' }
 for type, icon in pairs(signs) do
     local hl = "DiagnosticSign" .. type
     vim.fn.sign_define(hl, { text = icon, texthl = hl })
@@ -396,7 +442,9 @@ local on_attach = function(client, bufnr)
     vim.keymap.set("n", "gr", ":Telescope lsp_references<CR>", bufopts)
     vim.keymap.set("n", "<space>f", function() vim.lsp.buf.format { async = true } end, bufopts)
 
-    client.server_capabilities.semanticTokensProvider = nil
+    -- TODO: double check if Omnisharp fixed this issue in the latest version
+    -- TODO: also check if inlay hints is enabled in omnisharp right now
+    -- client.server_capabilities.semanticTokensProvider = nil
 end
 
 -- TODO: vim.tbl_extend("force", table1, table2, ...) to have a basic config and then overrides for each
@@ -459,10 +507,12 @@ local function handler(err, result, ctx, config)
         return
     end
     result[1].targetUri = "file://" .. result[1].targetUri
+    print(vim.inspect(result))
 
     return vim.lsp.handlers['textDocument/definition'](err, result, ctx, config)
 end
 
+-- TODO: this need to change telescope handler as well
 require('lspconfig').ansiblels.setup {
     on_attach = on_attach,
     capabilities = capabilities,

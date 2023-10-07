@@ -53,8 +53,6 @@ in
     networking.interfaces.eth0.useDHCP = true;
     nixpkgs.config.allowUnfree = true;
 
-    hardware.video.hidpi.enable = true;
-
     users.users.gdm.extraGroups = [ "video" ];
     users.users.${cfg.user}.extraGroups = [ "video" ];
     services.xserver = {
@@ -84,7 +82,7 @@ in
     services.openssh.permitRootLogin = "no";
 
     # xrdp until I fugure out how to hyperv enchanced session works
-    services.xrdp.enable = true;
+    services.xrdp.enable = lib.mkDefault true;
     services.xrdp.defaultWindowManager = "${pkgs.i3}/bin/i3";
   };
 }

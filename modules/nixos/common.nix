@@ -29,7 +29,7 @@ in
       firewall = {
         enable = false;
       };
-      useDHCP = false;
+      useDHCP = lib.mkDefault true;
     };
 
     time.timeZone = "America/Toronto";

@@ -48,7 +48,11 @@ exec --no-startup-id xsetroot -solid $back
 # Use Mouse+$mod to drag floating windows to their wanted position
 floating_modifier $mod
 
-bindsym $mod+o exec rofi -show run
+bindsym $mod+o exec rofi -show drun -show-icons
+bindsym $mod+shift+o exec rofi -show window
+bindsym $mod+s exec rofi -show ssh
+bindsym $mod+b exec rofi-bluetooth
+bindsym $mod+m exec rofi-network
 
 # start a terminal
 bindsym $mod+n exec kitty
@@ -104,6 +108,8 @@ set $ws9 "9"
 set $ws10 "10"
 
 # switch to workspace
+bindsym $mod+Right workspace next
+bindsym $mod+Left workspace prev
 bindsym $mod+1 workspace number $ws1
 bindsym $mod+2 workspace number $ws2
 bindsym $mod+3 workspace number $ws3
@@ -132,6 +138,15 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 
+
+# Pulse Audio controls
+bindsym XF86AudioRaiseVolume exec "amixer set Master -q 5%+ unmute"
+bindsym XF86AudioLowerVolume exec "amixer set Master -q 5%- unmute"
+bindsym XF86AudioMute exec "amixer -q sset Master,0 toggle"
+
+# Sreen brightness controls
+bindsym XF86MonBrightnessUp exec xbacklight -inc 20 # increase screen brightness
+bindsym XF86MonBrightnessDown exec xbacklight -dec 20 # decrease screen brightness
 #----------------------------------------------------------------------
 # Resize Mode
 #----------------------------------------------------------------------

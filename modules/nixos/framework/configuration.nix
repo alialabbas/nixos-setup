@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, lib, modulesPath, ... }:
 
 let
   cfg = config.modules.systemConfig;
@@ -6,6 +6,7 @@ in
 {
   imports = [
     ../common.nix
+    (modulesPath + "/installer/scan/not-detected.nix")
   ];
   config = {
 
@@ -21,19 +22,19 @@ in
     boot.kernelModules = [ "kvm-intel" ];
     boot.extraModulePackages = [ ];
 
-    fileSystems."/" =
-      {
-        device = "/dev/disk/by-label/nixos";
-        fsType = "ext4";
-      };
+    fileSystems."/" = {
+      device = "/dev/disk/by-label/nixos";
+      fsType = "ext4";
+    };
 
-    fileSystems."/boot" =
-      {
-        device = "/dev/disk/by-label/boot";
-        fsType = "vfat";
-      };
+    fileSystems."/boot" = {
+      device = "/dev/disk/by-label/boot";
+      fsType = "vfat";
+    };
 
     swapDevices = [ ];
+
+    hardware.enableRedistributableFirmware = lib.mkDefault true;
 
     hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
     # end of generated hardwre
@@ -47,8 +48,8 @@ in
 
     nixpkgs.config.allowUnfree = true;
 
-    users.users.gdm.extraGroups = [ "video" ];
-    users.users.${cfg.user}.extraGroups = [ "video" ];
+    users.users.${cfg.user}.extraGroups = [ "video" "networkmanager" "input" ];
+
     services.xserver = {
       enable = true;
       layout = "us";
@@ -61,22 +62,53 @@ in
 
       displayManager = {
         defaultSession = "none+i3";
-        lightdm.enable = false;
-        gdm.enable = true;
-
+        lightdm.enable = true;
+        gdm.enable = false;
       };
 
       windowManager = {
         i3.enable = true;
       };
+
+      libinput.enable = lib.mkDefault true; # To get touchpad gestures working
+      libinput.touchpad.horizontalScrolling = true;
     };
 
-    services.openssh.enable = true;
+    services.openssh.enable = lib.mkDefault true;
     services.openssh.passwordAuthentication = true;
     services.openssh.permitRootLogin = "no";
 
     nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
     powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
     networking.networkmanager.enable = true;
+
+    sound.enable = lib.mkDefault true;
+    security.rtkit.enable = lib.mkDefault true;
+    services.pipewire = {
+      enable = lib.mkDefault true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+    };
+
+    services.logind.lidSwitch = "lock";
+
+    # TODO: looks like there should be a firmware update for fingerprint device to allow this to work for 13th intel gen frameworks
+    services.fprintd = {
+      enable = lib.mkDefault true;
+      tod.enable = true;
+      #tod.driver = pkgs.libfprint-2-tod1-vfs0090;
+      tod.driver = pkgs.libfprint-2-tod1-goodix;
+      # tod.driver = pkgs.libfprint-2-tod1-goodix-550a;
+    };
+
+    services.fwupd.enable = lib.mkDefault true;
+
+    environment.sessionVariables = {
+      MOZ_USE_XINPUT2 = "1";
+    };
+
+    # bluetooth
+    hardware.bluetooth.enable = lib.mkDefault true;
   };
 }
