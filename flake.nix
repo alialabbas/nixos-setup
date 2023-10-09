@@ -24,62 +24,28 @@
 
   outputs = { self, nixpkgs, home-manager, nixos-wsl, nixos-hardware, ... }@inputs:
     let
-      mkNix = import ./lib/mkNix.nix;
-      mkHome = import ./lib/mkHome.nix;
       system = "x86_64-linux";
-      myOverrides = [ "nil" "nvim-lspconfig" "lua-language-server" ];
-      # TODO: move this stuff to keep the flake clean from various code
-      myFunctor = registry: overrides: self: super:
-        builtins.listToAttrs (builtins.map (x: { name = x; value = registry.${x}; }) overrides);
-      overlays = [ (myFunctor inputs.unstable.legacyPackages.${system} myOverrides) ];
+      myOverrides = [ /* "neovim"  */ ];
+      overlays = [ (import ./lib/mkOverlay.nix inputs.unstable.legacyPackages.${system} myOverrides) ];
+
+      # Any nixosConfiguration get added here
+      configurations = [
+        { name = "wsl"; overlays = [ (import ./overlays/wsl.nix) ] ++ overlays; modules = [ nixos-wsl.nixosModules.wsl ]; }
+        { name = "hyperv"; overlays = [ ]; modules = [ ]; }
+        { name = "framework"; overlays = overlays; modules = [ nixos-hardware.nixosModules.framework-13th-gen-intel ]; }
+      ];
+      machines = builtins.map
+        (machine: {
+          name = machine.name;
+          value = import ./lib/mkNix.nix { inherit nixpkgs home-manager system; modules = machine.modules; name = machine.name; overlays = machine.overlays; };
+        })
+        configurations;
     in
     {
-      lib = {
-        mkNix = mkNix;
-        mkHome = mkHome;
-      };
+      nixosConfigurations = builtins.listToAttrs machines;
 
-      nixosConfigurations.test = nixpkgs.lib.nixosSystem {
-        inherit system;
-        modules = [
-        ];
-      };
-
-      nixosConfigurations.hyperv = mkNix {
-        inherit nixpkgs home-manager system;
-        name = "hyperv";
-        hostname = "dev";
-        user = "alialabbas";
-        fullname = "Ali Alabbas";
-        email = "ali.n.alabbas@gmail.com";
-      };
-
-      nixosConfigurations.wsl = mkNix {
-        inherit nixpkgs home-manager system;
-        name = "wsl";
-        hostname = "wsl";
-        modules = [ nixos-wsl.nixosModules.wsl ];
-        user = "alialabbas";
-        fullname = "Ali Alabbas";
-        email = "ali.n.alabbas@gmail.com";
-        overlays = [ (import ./overlays/wsl.nix) ] ++ overlays;
-      };
-
-      nixosConfigurations.framework = mkNix {
-        inherit nixpkgs home-manager system;
-        name = "framework";
-        hostname = "dev-laptop";
-        modules = [ nixos-hardware.nixosModules.framework-13th-gen-intel ];
-        user = "alialabbas";
-        fullname = "Ali Alabbas";
-        email = "ali.n.alabbas@gmail.com";
-      };
-
-      homeConfigurations.home-only = mkHome {
+      homeConfigurations.home-only = import ./lib/mkHome.nix {
         inherit nixpkgs home-manager;
-        user = "alialabbas";
-        fullname = "Ali Alabbas";
-        email = "ali.n.alabbas@gmail.com";
       };
     };
 }

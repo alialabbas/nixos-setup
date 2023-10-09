@@ -1,17 +1,24 @@
-{ lib, pkgs, ... }:
+{ lib, pkgs, config, ... }:
 
 let
-  myPkgs = lib.attrValues (import ../../lib/pkgsBuilder.nix { inherit pkgs lib; });
-  rofi-network = pkgs.callPackage ../../rofi-network.nix { };
+  myPkgs = lib.attrValues (import ../../lib/pkgsBuilder.nix { inherit pkgs lib; } ../../pkgs);
 in
 {
-  xdg.enable = true;
 
-  home.stateVersion = "22.11";
+  imports = import ../../lib/mkImportPaths.nix { inherit lib; } ./.;
+
+  xdg. enable = true;
+
+  home = {
+    stateVersion = "22.11";
+    username = "alialabbas";
+    homeDirectory = "/home/alialabbas";
+  };
 
   programs.home-manager.enable = true;
 
   home.packages = with pkgs;[
+    firefox
     bat
     fd
     htop
@@ -23,7 +30,6 @@ in
     go
     yq
     nvd
-    rofi-network
   ] ++ myPkgs;
 
   home.sessionVariables = {
@@ -37,7 +43,7 @@ in
   };
 
   programs.readline = {
-    enable = true;
+    enable = lib.mkDefault true;
     variables = {
       show-all-if-ambiguous = "on";
       completion-ignore-case = "on";
@@ -75,8 +81,7 @@ in
   };
 
   programs.kitty = {
-    enable = true;
-    #extraConfig = builtins.readFile ../../dotfiles/kitty;
+    enable = lib.mkDefault true;
     font = {
       package = (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; });
       name = "Fira Code";
@@ -85,7 +90,6 @@ in
     keybindings = {
       "super+v" = "paste_from_clipboard";
       "super+c" = "copy_or_interrupt";
-      #"super+k" = "combine : clear_terminal scroll active : send_text normal,application \\x0c";
       "super+equal" = "increase_font_size";
       "super+minus" = "decrease_font_size";
       "super+shift+g" = "show_last_command_output";
@@ -101,18 +105,70 @@ in
   };
 
   programs.fzf = {
-    enable = true;
+    enable = lib.mkDefault true;
     enableBashIntegration = true;
     tmux.enableShellIntegration = true;
   };
 
   programs.starship = {
-    enable = true;
+    enable = lib.mkDefault true;
     enableBashIntegration = true;
     settings = {
+      battery = {
+        disabled = true;
+      };
       container = {
         disabled = true;
       };
+    };
+  };
+
+  xresources = {
+    properties = {
+      "Xft.dpi" = 180;
+      "Xft.autohint" = true;
+      "Xft.antialias" = true;
+      "Xft.hinting" = true;
+      "Xft.hintstyle" = "hintslight";
+      "Xft.rgba" = "rgb";
+      "Xft.lcdfilter" = "lcddefault";
+
+      # terminal colors
+      "*background" = "#1D1F21";
+      "*foreground" = "#C5C8C6";
+      "*cursorColor" = "#C3FF00";
+
+      # black
+      "*color0" = "#282A2E";
+      "*color8" = "#373B41";
+      # red
+      "*color1" = "#A54242";
+      "*color9" = "#CC6666";
+      # green
+      "*color2" = "#8C9440";
+      "*color10" = "#B5BD68";
+      # yellow
+      "*color3" = "#DE935F";
+      "*color11" = "#F0C674";
+      # blue
+      "*color4" = "#5F819D";
+      "*color12" = "#81A2BE";
+      # magenta
+      "*color5" = "#85678F";
+      "*color13" = "#B294BB";
+      # cyan
+      "*color6" = "#5E8D87";
+      "*color14" = "#8ABEB7";
+      # white
+      "*color7" = "#707880";
+      "*color15" = "#C5C8C6";
+
+      # URXVT
+      # Colors
+      # bold, italic, underline
+      "URxvt.colorBD" = "#B5BD68";
+      "URxvt.colorIT" = "#B294BB";
+      "URxvt.colorUL" = "#81A2BE";
     };
   };
 }

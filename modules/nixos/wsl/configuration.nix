@@ -19,7 +19,6 @@ let
     '';
   };
 
-  cfg = config.modules.systemConfig;
 in
 {
   imports = [
@@ -28,15 +27,17 @@ in
 
   wsl = {
     enable = true;
-    defaultUser = cfg.user;
+    defaultUser = mkDefault "alialabbas";
     startMenuLaunchers = true;
     nativeSystemd = true;
     wslConf = {
       network = {
-        hostname = cfg.hostname;
+        hostname = mkDefault "wsl";
       };
     };
   };
+
+  # TODO: this should be in home-manager, need to figure out why it is not working
   environment.systemPackages = [
     kitty-launcher
   ];

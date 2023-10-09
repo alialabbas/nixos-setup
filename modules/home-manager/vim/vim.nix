@@ -10,7 +10,7 @@ in
     plugins = with pkgs;
       [
         vimPlugins.vim-fugitive
-        customPlugins.omnisharp-vim # TODO: Omnisharp doesn't work with vim-lsp due to $metadata, see if it is possible to extend vim-lsp and potentially drop this
+        customPlugins.omnisharp-vim
         vimPlugins.vimspector
         customPlugins.vim-lsp-settings
         vimPlugins.vim-lsp
