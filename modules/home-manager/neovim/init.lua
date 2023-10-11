@@ -182,13 +182,16 @@ vim.api.nvim_set_keymap("n", "<F10>", ":DapStepOver<CR>", defaultKeymapOptions)
 vim.api.nvim_set_keymap("n", "<leader><F11>", ":DapStepOut<CR>", defaultKeymapOptions)
 vim.api.nvim_set_keymap("n", "<F11>", ":DapStepInto<CR>", defaultKeymapOptions)
 
+vim.api.nvim_set_keymap("n", "<F21>" --[[ Shift + F9]],
+    [[ <Esc><Cmd>lua vim.ui.input({ prompt = "Breakpoint Condition: ",}, function(input) require("dap").set_breakpoint(input)end)<CR> ]],
+    defaultKeymapOptions)
+
 local dap, dapui = require("dap"), require("dapui")
 vim.api.nvim_set_hl(0, "DapBreakpoint", { ctermbg = 0, fg = "#993939" })
 vim.api.nvim_set_hl(0, "DapLogPoint", { ctermbg = 0, fg = "#61afef" })
 vim.api.nvim_set_hl(0, "DapStopped", { ctermbg = 0, fg = "#98c379" })
-
-vim.fn.sign_define("DapBreakpoint", { text = "", texthl = "DapBreakpoint", linehl = "", numhl = "" })
-vim.fn.sign_define("DapBreakpointCondition", { text = "ﳁ", texthl = "DapBreakpoint", linehl = "", numhl = "" })
+vim.fn.sign_define("DapBreakpoint", { text = "◕", texthl = "DapBreakpoint", linehl = "", numhl = "" })
+vim.fn.sign_define("DapBreakpointCondition", { text = "⚉", texthl = "DapBreakpoint", linehl = "", numhl = "" })
 vim.fn.sign_define("DapBreakpointRejected", { text = "", texthl = "DapBreakpoint", linehl = "", numhl = "" })
 vim.fn.sign_define("DapLogPoint", { text = "", texthl = "DapLogPoint", linehl = "", numhl = "" })
 vim.fn.sign_define("DapStopped", { text = "", texthl = "DapStopped", linehl = "", numhl = "" })
