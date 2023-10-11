@@ -44,6 +44,13 @@
     {
       nixosConfigurations = builtins.listToAttrs machines;
 
+      devShells = {
+        x86-64_linux = {
+          default = import ./shell.nix { pkgs = nixpkgs.legacyPackages.${system}; };
+          nvim = import ./nvim.nix { inherit self; pkgs = nixpkgs.legacyPackages.${system}; };
+        };
+      };
+
       homeConfigurations.home-only = import ./lib/mkHome.nix {
         inherit nixpkgs home-manager;
       };
