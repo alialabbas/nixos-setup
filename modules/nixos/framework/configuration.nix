@@ -60,14 +60,14 @@
     pulse.enable = true;
   };
 
-  services.logind.lidSwitch = "lock";
+  services.logind.lidSwitch = "suspend-then-hibernate";
 
   # TODO: looks like there should be a firmware update for fingerprint device to allow this to work for 13th intel gen frameworks
   # Check this again when 23.11 is out
   services.fprintd = {
     enable = lib.mkDefault true;
-    tod.enable = true;
-    tod.driver = pkgs.libfprint-2-tod1-goodix;
+    # tod.enable = true;
+    # tod.driver = pkgs.libfprint-2-tod1-goodix;
   };
 
   services.fwupd.enable = lib.mkDefault true;
@@ -81,4 +81,5 @@
   hardware.bluetooth.enable = lib.mkDefault true;
 
   networking.hostName = "dev-laptop";
+  programs.nix-ld.enable = true;
 }

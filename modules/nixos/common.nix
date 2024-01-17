@@ -36,9 +36,9 @@ with lib;
 
   fonts = {
     fontDir.enable = true;
-    enableDefaultFonts = true;
-    fonts = with pkgs; [
-      (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
+    enableDefaultPackages = true;
+    packages = with pkgs; [
+      (nerdfonts.override { fonts = [ "FiraCode" ]; })
     ];
   };
 
@@ -55,7 +55,6 @@ with lib;
   services.xserver = {
     enable = lib.mkDefault true;
     layout = "us";
-    dpi = 220;
 
     desktopManager = {
       xterm.enable = false;
@@ -93,7 +92,6 @@ with lib;
     rxvt_unicode
     xclip
   ];
-
 
   system.stateVersion = "20.09";
 }
