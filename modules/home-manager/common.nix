@@ -18,7 +18,7 @@ in
   programs.home-manager.enable = true;
 
   home.packages = with pkgs;[
-    firefox
+    firefox-bin
     bat
     fd
     htop
