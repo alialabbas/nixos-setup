@@ -5,7 +5,7 @@
 let
   buildScript = pkgs.writeShellScriptBin "build-all" ''
     echo "building all nixos configs"
-    allConfigs=$(nix flake show --json | jq -r '.nixosConfigurations|keys[]')
+    allConfigs=$(nix flake show --json | ${pkgs.jq}/bin/jq -r '.nixosConfigurations|keys[]')
     for config in $allConfigs
     do
       echo "building $config"
@@ -22,4 +22,10 @@ pkgs.mkShell {
   buildInputs = [
     buildScript
   ];
+
+  shellHook = ''
+    echo "Welcome to the dev shell"
+    echo "You can run the following inside this shell"
+    echo "${buildScript.name} => Build all configurations nixos & home-manager"
+  '';
 }
