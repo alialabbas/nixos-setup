@@ -1,27 +1,24 @@
 /*
-* From Home-Manager config, treat neovim config as source and from there expose it in a shell
-* This is useful when you share the same NixSetup as other developers in a workplace and don't want to add your own setup as a dependency
+* From Home-Manager config, treat neovim modules as source of truth and expose the final package.
+* Wrap neovim in a simple bash script and leverage neovim remote. Inside nvim terminal, it will reuse the same nvim session
+* Also creates a custom session socket when ran inside kitty terminal
 */
-{ pkgs, self, ... }:
+{ pkgs, lib, self, ... }:
 
 let
-  myConfig = pkgs.writeText "init.lua" self.homeConfigurations.home-only.config.programs.neovim.extraLuaConfig;
-  myNvim = pkgs.neovim.override {
-    configure = {
-      packages.myVimPackage = {
-        start = self.homeConfigurations.home-only.config.programs.neovim.plugins; # This is neat, clever, smart. This is one way to solve it
-        opt = [ ];
-      };
-    };
-  };
+  find = name: lib.findFirst (x: lib.strings.hasPrefix name x.name) null self.homeConfigurations.home-only.config.home.packages;
 in
-pkgs.mkShell {
-  name = "nvim-shell";
-  buildInputs = with pkgs;[
-    myNvim
-    neovide
-  ] ++ self.homeConfigurations.home-only.config.programs.neovim.extraPackages;
-  shellHook = ''
-    alias nvim="nvim -u ${myConfig}"
-  '';
+{
+  nvim-remote = find "nvim-remote";
+  nvim = (self.homeConfigurations.home-only.config.programs.neovim.finalPackage).override (previous: {
+    wrapRc = true;
+    neovimRcContent =
+      ''
+        lua << EOF
+      '' +
+      self.homeConfigurations.home-only.config.programs.neovim.extraLuaConfig +
+      ''
+        EOF
+      '';
+  });
 }

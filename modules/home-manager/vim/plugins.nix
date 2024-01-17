@@ -12,7 +12,7 @@
     };
   };
 
-  vim-lsp-settings = vimUtils.buildVimPluginFrom2Nix {
+  vim-lsp-settings = vimUtils.buildVimPlugin {
     name = "vim-lsp-settings";
     src = fetchFromGitHub {
       owner = "mattn";
