@@ -5,10 +5,6 @@
     ./common.nix
   ];
 
-  home.packages = with pkgs; [
-    firefox
-  ];
-
   programs.i3status = {
     modules = {
       "wireless _first_".enable = false;
