@@ -95,6 +95,10 @@ in
       "super+shift+g" = "show_last_command_output";
       "super+ctrl+p" = "scroll_to_prompt -1";
       "super+ctrl+n" = "scroll_to_prompt 1";
+      "super+y" = "launch --stdin-source=@last_cmd_output --type=clipboard";
+      "ctrl+shift+z" = "goto_layout stack";
+      "alt+shift+z" = "goto_layout tall";
+      "kitty_mod+enter" = "new_window_with_cwd";
     };
     settings = {
       enable_audio_bell = false;
