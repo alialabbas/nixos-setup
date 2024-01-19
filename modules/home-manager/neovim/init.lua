@@ -68,27 +68,97 @@ end
 -- TODO: not sure why this make yamlls not loading to helm filetype but it works
 -- TODO: move this to a file specific behavior
 vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
-    pattern = { '*/templates/*.yaml', '*/templates/*.tpl', '*.gotempl', 'helmfile*.yaml' },
-    callback = function()
-        vim.opt_local.filetype = 'helm'
+    pattern = {
+        '*/templates/*.yaml',
+        '*/templates/*.tpl',
+        '*.gotempl',
+        'helmfile*.yaml',
+        'Chart.yaml',
+        'values.yaml',
+        'values*.yaml',
+        '.helmignore',
+        'requirements.yaml',
+        '*/templates/NOTES.txt'
+    },
+    callback = function(args)
+        print(args.match)
+        -- NOTES.txt and requirements.yaml are not unique to helm
+        -- Check them before we do anything else
+        local file_name = vim.fn.fnamemodify(args.match, ":t")
+        local dir = vim.fn.fnamemodify(args.match, ":h")
+        if file_name == "requirements.yaml" then
+            if vim.fn.filereadable(vim.fn.fnamemodify(args.match, ":h") .. "Chart.yaml") == 0 then
+                return
+            end
+        elseif file_name == "NOTES.txt" and vim.fn.fnamemodify(args.match, ":h:t") ~= "templates" then
+            return
+        elseif #vim.fs.find("Chart.yaml", { upward = true, path = dir }) ~= 1 then
+            print("Not a helm directory")
+            return
+        end
+
+        vim.print("bootstrapping helm goodies")
+
+        -- At this point we know any of these yaml files are valid
+        if file_name == ".helmignore" then
+        elseif
+            file_name == "Chart.yaml" or
+            file_name == "requirements.yaml" or
+            file_name:find("values") ~= nil -- Match "values*"
+        then
+            vim.opt_local.filetype = 'yaml'
+        else
+            vim.opt_local.filetype = 'helm'
+        end
         vim.opt_local.shiftwidth = 2
+
+        local efm =
+            "%.%#%tRROR on %f: %.%#: %.%#: line %l: %m," ..
+            "%.%#%tRROR at (%f:%l): %m," ..
+            "%.%#[%tRROR] %f: %.%#: %.%#: line %l: %m," ..
+            "%.%#[%tRROR] templates/: %.%# (%f:%l): %m," ..
+            "%-G%.%#"
+        local function helm_template()
+            local res = vim.system({ "helm", "template", "." }):wait()
+            if res.code ~= 0 then
+                local processed_lines = vim.system({ "sed", 's/([a-zA-Z]*\\//(/' }, { stdin = res.stderr }):wait()
+                vim.fn.setqflist({}, ' ',
+                    { title = 'Helm Template . - Errors', lines = vim.split(processed_lines.stdout, "\n"), efm = efm })
+                vim.cmd("copen")
+                return
+            end
+
+            local buf = vim.api.nvim_create_buf(false, false)
+            vim.api.nvim_buf_set_option(buf, "filetype", "yaml")
+            vim.api.nvim_buf_set_name(buf, "TemplatedChart")
+            vim.api.nvim_buf_set_option(buf, "swapfile", false)
+            local win = vim.api.nvim_get_current_win()
+            vim.api.nvim_win_set_buf(win, buf)
+            vim.api.nvim_buf_set_text(buf, 0, 0, 0, 0, vim.split(res.stdout, "\n"))
+            vim.api.nvim_buf_set_option(buf, "modifiable", true)
+            vim.api.nvim_buf_set_option(buf, "buftype", "nowrite")
+        end
+
+        vim.api.nvim_create_user_command("HelmTemplate", function() helm_template() end, {})
+        vim.opt_local.makeprg = "helm lint . \\| sed 's/([a-zA-Z]*\\//(/'"
+        vim.opt_local.errorformat =
+            "%.%#%tRROR on %f: %.%#: %.%#: line %l: %m," ..
+            "%.%#%tRROR at (%f:%l): %m," ..
+            "%.%#[%tRROR] %f: %.%#: %.%#: line %l: %m," ..
+            "%.%#[%tRROR] templates/: %.%# (%f:%l): %m," ..
+            "%-G%.%#"
     end
 })
 
 vim.api.nvim_create_autocmd({ 'FileType', }, {
     pattern = "helm",
-    command = [[ setlocal commentstring={{/*\ %s\ */}} ]]
+    callback = function()
+        vim.opt_local.commentstring = "{{/*\\ %s */}}"
+        -- Manual load because the plugin has a bad ftdetect and I don't want too use it
+        vim.cmd("packadd! vim-helm")
+    end
 })
 
--- TODO: ansible-vim is stupid, they look for playbook.yaml, not good enforcement on the file types based on paths
--- Can both my settings and the plugin exist together or it might just be the same as vim-help
--- TODO: with neovim the original plugin detecting the file doesn't work nicely with lspconfig somehow,
--- All of these add the same as the upstream plugin + extend what is in there already
--- TODO: languag-server has semantic highligting which makes the plugin useless for anything other than a default back when it is not running
--- TODO: syntax from the plugin is failing to load because I have TS enabled for the whole thing and nothing is overriding it or providing it with tokens
--- TODO: languageserver can take any file, should probably add yaml.ansible and yaml to it
--- TODO: add the rest of the patterns here
--- TODO: Vadlidate if we can remove the plugin and keep basic jinja2 highligting with basic vim ft
 vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
     pattern = {
         '*/playbooks/*.yml',
@@ -103,14 +173,11 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
         '*/host_vars/*',
         'site.yml',
         'site.yaml',
-        'main.yml',
-        'main.yaml',
-        'playbook.yml',
-        'playbook.yaml',
     },
     callback = function()
         vim.opt_local.filetype = 'yaml.ansible'
         vim.opt_local.shiftwidth = 2
+        vim.cmd("packadd! ansible-vim")
     end
 })
 

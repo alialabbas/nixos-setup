@@ -40,7 +40,10 @@ in
         zenburn
         vim-nixhash
         vim-nix
-        ansible-vim
+        {
+          plugin = ansible-vim;
+          optional = true;
+        }
         nvim-dap
         nvim-dap-ui
         nvim-dap-virtual-text
@@ -66,19 +69,22 @@ in
         cmp-nvim-lsp-signature-help
         telescope-ui-select-nvim
         dressing-nvim
-        vim-helm
+
+        {
+          plugin = vim-helm;
+          optional = true;
+        }
+
         nvim-navic
-        # statuscol-nvim
         gitsigns-nvim
         barbecue-nvim
         dropbar-nvim
-        # barbar-nvim
         tabby-nvim
         vim-bookmarks
         telescope-vim-bookmarks-nvim
 
         # Test Explorer
-        neotest # TODO: remove me when there is a backport to release-23.11
+        neotest
         neotest-dotnet
         neotest-go
         myplugin
