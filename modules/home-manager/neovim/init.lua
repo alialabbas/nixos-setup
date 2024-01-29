@@ -213,7 +213,7 @@ vim.o.foldlevel = 99   -- Using ufo provider need a large value, feel free to de
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
 
--- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
+require 'ufo'.setup()
 vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
 vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
 
@@ -339,6 +339,9 @@ require("dressing").setup({
 })
 
 vim.api.nvim_set_keymap("n", "<leader>tt", ":Telescope<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<leader>f",
+    [[<Esc><Cmd>lua require "telescope".extensions.file_browser.file_browser({ path = vim.loop.cwd() })<CR>]],
+    { noremap = true, silent = true })
 
 ------ DAP
 local defaultKeymapOptions = { noremap = true, silent = true }
@@ -1144,7 +1147,7 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
         })
         vim.api.nvim_set_hl(0, "WinBar", { bg = "NONE", fg = "NONE" })
         vim.api.nvim_set_hl(0, "WinBarNC", { bg = "NONE", fg = "NONE" })
-        vim.keymap.set("n", "<leader>f", require("dropbar.api").pick, { noremap = true, silent = true })
+        vim.keymap.set("n", "<leader>bc", require("dropbar.api").pick, { noremap = true, silent = true })
     end
 })
 
@@ -1267,7 +1270,8 @@ dashboard.section.footer.val = string.format(
 dashboard.section.buttons.val = {
     dashboard.button("e", "  > New file", ":ene <BAR> startinsert <CR>"),
     dashboard.button("f", "  > Find file", ":Telescope find_files<CR>"),
-    dashboard.button("p", "  > Projects", ":Telescope repo list<CR>"),
+    dashboard.button("p", "  > Projects",
+        ':lua = require "telescope".extensions.repo.list({search_dirs={vim.loop.cwd()}})<CR>'),
     dashboard.button("s", "  > Sessions", ":Telescope possession list<CR>"),
     dashboard.button("r", "  > Recent", ":Telescope oldfiles<CR>"),
     dashboard.button("w", "󰛔  > Fuzzy Search", ":Telescope live_grep<CR>"),
