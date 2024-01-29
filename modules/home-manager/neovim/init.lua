@@ -68,6 +68,11 @@ if vim.cmd.WSL_DISTOR_NAME ~= nil then
     vim.g.netrw_browsex_viewer = "wslview"
 end
 
+vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+    pattern = { "Dockerfile*", "DockerFile*" },
+    callback = function() vim.opt_local.filetype = 'dockerfile' end
+})
+
 -- TODO: not sure why this make yamlls not loading to helm filetype but it works
 -- TODO: move this to a file specific behavior
 vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
