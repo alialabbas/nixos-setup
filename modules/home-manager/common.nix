@@ -26,11 +26,17 @@ in
     ripgrep
     tree
     watch
-    dotnet-sdk
+    (with dotnetCorePackages; combinePackages [
+      sdk_6_0
+      sdk_7_0
+      sdk_8_0
+    ])
     go
     yq
     nvd
   ] ++ myPkgs;
+
+  programs.bash.initExtra = builtins.readFile ./dotnet.sh;
 
   home.sessionVariables = {
     LANG = "en_US.UTF-8";
@@ -129,7 +135,6 @@ in
 
   xresources = {
     properties = {
-      "Xft.dpi" = 180;
       "Xft.autohint" = true;
       "Xft.antialias" = true;
       "Xft.hinting" = true;
