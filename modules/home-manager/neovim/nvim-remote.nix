@@ -22,7 +22,7 @@ writeShellScriptBin "nvim-remote" ''
   if [ ! -z "$NVIM" ] || [ -S "/run/user/$UID/kitty-nvim.$KITTY_PID" ]; then
       if [ -v $NVIM ]; then NVIM=/run/user/$UID/kitty-nvim.$KITTY_PID; fi
       ${myNvim}/bin/nvim --server $NVIM --remote-send\
-      "<cmd>lua require('toggleterm').close_all()<CR>:e $@<CR>"
+      "<cmd>lua require('toggleterm').close_all()<CR><esc>:e $@<CR>"
   elif [ ! -z $"KITTY_PID" ]; then
       ${myNvim}/bin/nvim --listen "/run/user/$UID/kitty-nvim.$KITTY_PID" "$@"
   else
