@@ -30,7 +30,6 @@ in
         nvim-treesitter.withAllGrammars
         nvim-treesitter-context
         comment-nvim
-        refactoring-nvim
         nvim-lspconfig
         omnisharp-extended-lsp-nvim
         telescope-nvim
@@ -74,9 +73,7 @@ in
           optional = true;
         }
 
-        nvim-navic
         gitsigns-nvim
-        barbecue-nvim
         dropbar-nvim
         tabby-nvim
         vim-bookmarks
@@ -92,7 +89,6 @@ in
         gitlinker-nvim
         alpha-nvim
         vim-rooter
-        nui-nvim
         nvim-ufo
       ] ++ customPlugins;
 

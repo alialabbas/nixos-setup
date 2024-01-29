@@ -34,20 +34,6 @@
     };
   };
 
-  # TODO: current release-23.11 has neotest override neorg instead.
-  # For now we provide our own until there is a backport
-  # neotest = vimUtils.buildVimPlugin {
-  #   pname = "neotest";
-  #   version = "2023-11-13";
-  #   src = fetchFromGitHub {
-  #     owner = "nvim-neotest";
-  #     repo = "neotest";
-  #     rev = "d424d262d01bccc1e0b038c9a7220a755afd2a1f";
-  #     sha256 = "1sg8m77hik1gffrqy4038sivhr8yhg536dp6yr5gbnbrjvc35dgm";
-  #   };
-  #   meta.homepage = "https://github.com/nvim-neotest/neotest/";
-  # };
-
   # REMOVE: once the plugin merge the dev branch for nvim 0.10
   statuscol-nvim = vimUtils.buildVimPlugin {
     pname = "statuscol-nvim";
