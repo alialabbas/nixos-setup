@@ -23,6 +23,9 @@ vim.o.splitright = true
 vim.o.wildmenu = true
 vim.o.wildmode = "longest:full,full"
 vim.o.wop = "pum"
+vim.o.backupdir = vim.fn.expand("$XDG_STATE_HOME") .. "/nvim/backup"
+vim.o.directory = vim.fn.expand("$XDG_STATE_HOME") .. "/nvim/tmp"
+vim.o.undodir = vim.fn.expand("$XDG_STATE_HOME") .. "/nvim/undo"
 
 ------- Window Options
 vim.wo.signcolumn = "yes"
@@ -42,8 +45,8 @@ vim.cmd.colorscheme "onehalfdark"
 vim.api.nvim_set_hl(0, "NormalFloat", { link = 'Pmenu' })
 vim.api.nvim_set_hl(0, "FloatBorder", { link = 'WinSeparator' })
 vim.api.nvim_set_hl(0, "WinSeparator", { link = 'VertSplit' })
--- TODO: Is this another neovim color scheme changes
-vim.api.nvim_set_hl(0, "@lsp.type.variable", { link = "Identifier" })
+vim.api.nvim_set_hl(0, "@field.yaml", { link = "Identifier" }) --- Yaml keys shouldn't be the same as string highlights
+
 ------- CMDs
 vim.api.nvim_create_autocmd({ "BufWritePre" }, {
     pattern = { "*.rs", "*.nix", "*.go", "*.lua" },
@@ -96,8 +99,6 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
             print("Not a helm directory")
             return
         end
-
-        vim.print("bootstrapping helm goodies")
 
         -- At this point we know any of these yaml files are valid
         if file_name == ".helmignore" then
@@ -569,28 +570,6 @@ vim.api.nvim_set_keymap("n", "<leader>to", [[ <Esc><Cmd>lua require("neotest").o
 ------ COMMENT
 require("Comment").setup()
 
------- REFACTORING
-require("refactoring").setup({})
-vim.api.nvim_set_keymap("v", "<leader>re", [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Function')<CR>]],
-    { noremap = true, silent = true, expr = false })
-vim.api.nvim_set_keymap("v", "<leader>rf",
-    [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Function To File')<CR>]],
-    { noremap = true, silent = true, expr = false })
-vim.api.nvim_set_keymap("v", "<leader>rv", [[ <Esc><Cmd>lua require('refactoring').refactor('Extract Variable')<CR>]],
-    { noremap = true, silent = true, expr = false })
-vim.api.nvim_set_keymap("v", "<leader>ri", [[ <Esc><Cmd>lua require('refactoring').refactor('Inline Variable')<CR>]],
-    { noremap = true, silent = true, expr = false })
-
--- Extract block doesn't need visual mode
-vim.api.nvim_set_keymap("n", "<leader>rb", [[ <Cmd>lua require('refactoring').refactor('Extract Block')<CR>]],
-    { noremap = true, silent = true, expr = false })
-vim.api.nvim_set_keymap("n", "<leader>rbf", [[ <Cmd>lua require('refactoring').refactor('Extract Block To File')<CR>]],
-    { noremap = true, silent = true, expr = false })
-
--- Inline variable can also pick up the identifier currently under the cursor without visual mode
-vim.api.nvim_set_keymap("n", "<leader>ri", [[ <Cmd>lua require('refactoring').refactor('Inline Variable')<CR>]],
-    { noremap = true, silent = true, expr = false })
-
 ------ LSP
 local telescope = require('telescope.builtin')
 local opts = { noremap = true, silent = true }
@@ -747,43 +726,6 @@ local cfg = require("yaml-companion").setup({
 })
 require("lspconfig")["yamlls"].setup(cfg)
 
-require 'ufo'.setup()
-
-require("nvim-navic").setup({
-    icons = {
-        File = ' ',
-        Module = ' ',
-        Namespace = ' ',
-        Package = ' ',
-        Class = ' ',
-        Method = ' ',
-        Property = ' ',
-        Field = ' ',
-        Constructor = ' ',
-        Enum = ' ',
-        Interface = ' ',
-        Function = ' ',
-        Variable = ' ',
-        Constant = ' ',
-        String = ' ',
-        Number = ' ',
-        Boolean = ' ',
-        Array = ' ',
-        Object = ' ',
-        Key = ' ',
-        Null = ' ',
-        EnumMember = ' ',
-        Struct = ' ',
-        Event = ' ',
-        Operator = ' ',
-        TypeParameter = ' '
-    },
-
-    lsp = {
-        auto_attach = true,
-    },
-    click = true,
-})
 
 ------ AUTOCOMPLETE
 local cmp = require "cmp"

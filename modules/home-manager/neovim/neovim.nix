@@ -64,7 +64,6 @@ in
         neogen
         vim-vsnip
 
-        # toggleterm-nvim
         lualine-nvim
         cmp-nvim-lsp-signature-help
         telescope-ui-select-nvim
@@ -91,7 +90,6 @@ in
 
         indent-blankline-nvim
         gitlinker-nvim
-        # dashboard-nvim
         alpha-nvim
         vim-rooter
         nui-nvim
@@ -100,8 +98,7 @@ in
 
       extraLuaConfig = builtins.readFile ../neovim/init.lua;
 
-      # This is limited to language servers, debug adapters and some neovim only
-      # tools
+      # This is limited to language servers, debug adapters and some neovim only tools
       extraPackages = with pkgs;[
         helm-ls
         jsonnet-language-server
@@ -122,5 +119,3 @@ in
     home.packages = [ nvim-remote ];
   };
 }
-
-
