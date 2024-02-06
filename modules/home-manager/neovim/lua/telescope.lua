@@ -25,8 +25,19 @@ vim.api.nvim_set_keymap(
     "<leader>tt", ":Telescope<CR>",
     { noremap = true, silent = true })
 
+vim.api.nvim_set_keymap(
+    "n",
+    "<leader>tg", ":Telescope git_files<CR>",
+    { noremap = true, silent = true })
+
 vim.keymap.set(
     "n",
-    "<leader>f",
+    "<leader>tf",
     function() require "telescope".extensions.file_browser.file_browser({ path = vim.loop.cwd(), initial_mode = "normal" }) end,
+    { noremap = true, silent = true })
+
+vim.keymap.set(
+    "n",
+    "<leader>tp",
+    function() require "telescope".extensions.repo.list() end,
     { noremap = true, silent = true })
