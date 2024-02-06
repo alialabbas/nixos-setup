@@ -42,7 +42,7 @@
       owner = "luukvbaal";
       repo = "statuscol.nvim";
       rev = "0.10";
-      sha256 = "sha256-joZ6gfTN0gcWlYBNYk+CsaWA8SfRvGGLWIMl5J5W46w=";
+      sha256 = "sha256-sbDwEOGY9U+qoj1jIvPh6hMdpT6vak7sWLU6edgb+Ww=";
     };
     meta.homepage = "https://github.com/luukvbaal/statuscol/";
   };
@@ -69,16 +69,5 @@
       sha256 = "sha256-A32fL+dpLwNT4gA20vap5Ycm40HWMfc01a4FDQe+jQ4=";
     };
     meta.homepage = "https://github.com/cljoly/telescope-repo.nvim";
-  };
-
-  toggleterm-nvim = vimUtils.buildVimPlugin {
-    pname = "toggleterm-nvim";
-    version = "2024-01-15";
-    src = fetchFromGitHub {
-      owner = "alialabbas";
-      repo = "toggleterm.nvim";
-      rev = "tabs";
-      sha256 = "sha256-SKi3KCbXgIEBwiQICcX7PFSMhe0Syx6AEqUf/3JF51k=";
-    };
   };
 }

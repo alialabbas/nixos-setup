@@ -12,7 +12,7 @@ function _dotnet_bash_complete()
 
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   case "${prev}" in
-      build|--project|test)
+      build|--project|test|list)
         local paths=$(find . -name "*.csproj" 2>/dev/null)
         local all=("${candidates[@]}" "${paths[@]}")
         read -d '' -ra COMPREPLY < <(compgen -W "${all[*]:-}" -- "$cur")

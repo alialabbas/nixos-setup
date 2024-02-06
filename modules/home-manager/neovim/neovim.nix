@@ -18,6 +18,7 @@ let
   nvim-remote = import ./nvim-remote.nix {
     writeShellScriptBin = pkgs.writeShellScriptBin;
     nvim = config.programs.neovim.finalPackage;
+    config = config.programs.neovim.extraLuaConfig;
   };
 
 in
@@ -85,17 +86,19 @@ in
         neotest-go
         myplugin
 
-        indent-blankline-nvim
         gitlinker-nvim
         alpha-nvim
         vim-rooter
         nvim-ufo
+        nui-nvim
       ] ++ customPlugins;
 
-      extraLuaConfig = builtins.readFile ../neovim/init.lua;
+      extraLuaConfig = builtins.concatStringsSep "\n"
+        (map builtins.readFile (lib.filesystem.listFilesRecursive ./lua)
+        );
 
       # This is limited to language servers, debug adapters and some neovim only tools
-      extraPackages = with pkgs;[
+      extraPackages = with pkgs; [
         helm-ls
         jsonnet-language-server
         netcoredbg
