@@ -15,7 +15,7 @@ require 'treesitter-context'.setup {
 vim.g.rooter_cd_cmd = 'tcd'
 vim.g.rooter_patterns = {
     '.git', '_darcs', '.hg', '.bzr', '.svn', 'Makefile',
-    'package.json', 'go.mod', '*.csproj', '*.sln', 'Chart.yaml' }
+    'package.json', 'go.mod', '*.sln' }
 
 require("dressing").setup({
     input = {

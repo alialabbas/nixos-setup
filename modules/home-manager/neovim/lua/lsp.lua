@@ -70,7 +70,10 @@ local servers = {
     gopls = {},
     jsonnet_ls = {},
     pyright = {},
-    fsautocomplete = {},
+    fsautocomplete = {
+        cmd = { 'fsautocomplete', },
+        cmd_env = { DOTNET_ROLL_FORWARD = "LatestMajor" },
+    },
     rust_analyzer = {},
     omnisharp = {
         handlers = {

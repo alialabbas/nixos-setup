@@ -1,6 +1,6 @@
 local opts = { noremap = true, silent = true }
 vim.api.nvim_set_keymap("n", "<F5>", ":DapContinue<CR>", opts)
-vim.api.nvim_set_keymap("n", "<F9>", ":DapToggleBreakpoint<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap("n", "<F9>", ":DapToggleBreakpoint<CR>", opts)
 vim.api.nvim_set_keymap("n", "<leader><F9>", [[ <Esc><Cmd>lua require('dap').clear_breakpoints()<CR>]],
     { noremap = true, silent = true })
 vim.api.nvim_set_keymap("n", "<F10>", ":DapStepOver<CR>", opts)
@@ -45,10 +45,74 @@ end
 
 vim.g.dotnet_build_project = function()
     return coroutine.create(function(dap_run_co)
-        local result = vim.fn.system({ 'find', '.', '-name', '*.csproj' })
-        local items = vim.split(result, "\n")
+        -- Sdk.Web projects
+        local project_query = [[
+        (element
+          (STag (Name)@name (#match? @name "Project")
+                (Attribute (Name)@attrName (#match? @attrName "Sdk")
+                   (AttValue)@attrVal (#match? @attrVal "Microsoft.NET.Sdk.Web")
+                )
+            )@tag
+        )
+        ]]
 
-        vim.ui.select(items, { label = '> ' }, function(choice)
+        -- Console
+        local output_type_query = [[
+        (element
+          (content
+            (element
+              (STag)@outputType(#match? @outputType "OutputType")
+              (content(CharData)@type)
+              )
+            )
+          )
+        ]]
+
+        local projects = {}
+
+        local process_csproj_content = function(file_path, content)
+            local filetype = "xml"
+            local language_tree = vim.treesitter.get_string_parser(content, filetype)
+            local root = language_tree:parse()[1]:root()
+
+            local query = vim.treesitter.query.parse(filetype, project_query .. output_type_query)
+
+            for _, captures, _ in query:iter_matches(root, content) do
+                for id, node in pairs(captures) do
+                    local capture = query.captures[id]
+                    if capture == "attrVal" or capture == "type" then
+                        table.insert(projects, file_path)
+                        return true
+                    end
+                end
+            end
+            return false
+        end
+
+        local read_file = function(path)
+            local fd = assert(vim.uv.fs_open(path, "r", 438))
+            local stat = assert(vim.uv.fs_fstat(fd))
+            local data = assert(vim.uv.fs_read(fd, stat.size, 0))
+            assert(vim.uv.fs_close(fd))
+            return data
+        end
+
+        local on_event = function(job_id, data, event)
+            if event == "stdout" and data then
+                for _, file in ipairs(data) do
+                    if file ~= "" then
+                        local content = read_file(file)
+                        process_csproj_content(file, content)
+                    end
+                end
+            end
+        end
+
+
+        local job_id = vim.fn.jobstart("git ls-files *.csproj", { on_stdout = on_event, stdout_buffered = true })
+        vim.fn.jobwait({ job_id })
+
+        vim.ui.select(projects, { label = '> ' }, function(choice)
             local cmd = "dotnet build -c Debug " .. choice .. " > /dev/null"
             print("")
             print("Cmd to execute: " .. cmd)
@@ -60,8 +124,13 @@ vim.g.dotnet_build_project = function()
                 return
             end
 
-            result = vim.fn.system({ 'find', '.', '-name', '*.dll', '-not', '-path', '**/obj/*' })
-            items = vim.split(result, "\n")
+            -- Filter for the expected dll name, doesn't work AsemblyName is not the same as csproj
+            local result = vim.fn.system({
+                'find',
+                vim.fn.fnamemodify(choice, ":h") .. "/bin",
+                '-name', vim.fn.fnamemodify(choice, ":t:r") .. '.dll' })
+
+            local items = vim.split(result, "\n")
             vim.ui.select(items, { label = '> ' }, function(choice)
                 coroutine.resume(dap_run_co, choice)
             end)

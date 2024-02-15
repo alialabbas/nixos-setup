@@ -90,7 +90,6 @@ in
         alpha-nvim
         vim-rooter
         nvim-ufo
-        nui-nvim
       ] ++ customPlugins;
 
       extraLuaConfig = builtins.concatStringsSep "\n"
