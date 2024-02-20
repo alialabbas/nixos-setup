@@ -89,7 +89,6 @@ in
         gitlinker-nvim
         alpha-nvim
         vim-rooter
-        nvim-ufo
       ] ++ customPlugins;
 
       extraLuaConfig = builtins.concatStringsSep "\n"
@@ -110,6 +109,7 @@ in
         yaml-language-server
         pyright
         findutils.locate
+        nodePackages.bash-language-server
       ];
     };
 

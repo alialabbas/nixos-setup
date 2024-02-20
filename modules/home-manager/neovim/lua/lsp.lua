@@ -67,6 +67,7 @@ local function ansible_handler(err, result, ctx, config)
 end
 
 local servers = {
+    bashls = {},
     gopls = {},
     jsonnet_ls = {},
     pyright = {},

@@ -1,16 +1,25 @@
+--- I live this fold style, clean simple effective... Until neovim/vim has hightlight, this is the only way without plugins
+function _G.MyFoldText()
+    return vim.fn.getline(vim.v.foldstart) .. ' ... ' .. vim.fn.getline(vim.v.foldend):gsub("^%s*", "")
+end
+
+vim.opt.foldtext = 'v:lua.MyFoldText()'
+
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
 vim.o.foldcolumn = '1'
 vim.o.foldlevel = 99
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
 
 -- vim.o.foldtext = ''
--- vim.o.fillchars = 'fold: '
--- vim.o.foldmethod = 'expr'
--- vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.o.fillchars = 'fold: '
+vim.o.foldmethod = 'expr'
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 
-require 'ufo'.setup()
-vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
-vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
+-- require 'ufo'.setup()
+-- vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
+-- vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
 
 vim.o.fillchars = [[eob: ,fold: ,foldopen:,foldsep: ,foldclose:,diff:/]]
 

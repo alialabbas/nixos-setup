@@ -43,10 +43,109 @@ dap.listeners.after.event_initialized["dapui_config"] = function()
     open_in_tab()
 end
 
-vim.g.dotnet_build_project = function()
-    return coroutine.create(function(dap_run_co)
-        -- Sdk.Web projects
-        local project_query = [[
+local FS = {}
+
+--- Open a file and return its content
+---@param path string file to load
+---@return string content
+FS.read_file = function(path)
+    local fd = assert(vim.uv.fs_open(path, "r", 438))
+    local stat = assert(vim.uv.fs_fstat(fd))
+    local data = assert(vim.uv.fs_read(fd, stat.size, 0))
+    assert(vim.uv.fs_close(fd))
+    return data
+end
+
+--- walk up from the start dir and find a file matching the pattern
+---@param start string
+---@param pattern string supports glob pattern
+FS.find_root = function(start, pattern)
+    if start == "/" then
+        return ""
+    end
+
+    local result = vim.fn.glob(start .. "/" .. pattern, true, true)
+    if not vim.tbl_isempty(result) then
+        return result
+    end
+
+    FS.find_root(vim.fn.fnamemodify(start, ":h"), pattern)
+end
+
+local Treesitter = {}
+
+--- Generic parse query method that would either process a query on a buffer or strin content
+--- The result is always something like this table = { string in to_capture = { value = node_value, row_end, row_start, col_start, col_end}}
+---@param query string TS query
+---@param file integer|string buf id or file content
+---@param lang string language to use in the query
+---@param to_capture string[] list of strings represeneting capture groups in the passed query.
+---@return table<string, any>[] list of tables, each table contains a full capture group pased on the specified spec in to_capture
+Treesitter.parse_query = function(query, file, lang, to_capture)
+    local parser = vim.treesitter.get_parser
+    if type(file) == "string" then
+        parser = vim.treesitter.get_string_parser
+    end
+
+    local language_tree = parser(file, lang)
+    local root = language_tree:parse()[1]:root()
+
+    local output = {}
+    local query_result = vim.treesitter.query.parse(lang, query)
+    for _, captures, _ in query_result:iter_matches(root, file) do
+        local result = {}
+        for id, node in pairs(captures) do
+            local capture = query_result.captures[id]
+            if vim.tbl_contains(to_capture, capture) then
+                result[capture] = {}
+                result[capture].value = vim.treesitter.get_node_text(node, file)
+
+                result[capture].row_start,
+                result[capture].col_start,
+                result[capture].row_end,
+                result[capture].col_end =
+                    vim.treesitter.get_node_range(node)
+            end
+        end
+        table.insert(output, result)
+    end
+    return output
+end
+
+
+Dotnet = {}
+Dotnet.ts = {
+    lang = {
+        CS = "c_sharp",
+        CSPROJ = "xml"
+    }
+}
+
+Dotnet.ts.queries = {
+    tests = [[
+        (file_scoped_namespace_declaration
+          (qualified_name)@namespace
+          (class_declaration
+            (identifier)@class
+            (declaration_list
+                (method_declaration (attribute_list(attribute
+                        name: (identifier))@attr (#match? @attr "Fact"))
+                    name: (identifier)@method)
+            )
+          )
+        )
+    ]],
+    frameworks = [[
+        (element
+            (STag
+              (Name
+            )@name)@tag
+            (#match? @tag "TargetFramework")
+            (content)@frameworks
+        )
+    ]],
+    runnable_projects = [[
+        ;; web sdk projects
         (element
           (STag (Name)@name (#match? @name "Project")
                 (Attribute (Name)@attrName (#match? @attrName "Sdk")
@@ -54,10 +153,8 @@ vim.g.dotnet_build_project = function()
                 )
             )@tag
         )
-        ]]
 
-        -- Console
-        local output_type_query = [[
+        ;; cli projects
         (element
           (content
             (element
@@ -66,76 +163,119 @@ vim.g.dotnet_build_project = function()
               )
             )
           )
-        ]]
+    ]],
+    test_projects = [[
+        (element
+          (content
+            (element
+              (content
+                (element
+                  (EmptyElemTag
+                    (Attribute
+                      (Name)@name (#match? @name "Include")
+                      (AttValue)@value (#match? @value "Microsoft.NET.Test.Sdk")
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+    ]]
+}
 
-        local projects = {}
+Dotnet.get_tests = function(bufnr)
+    local result = Treesitter.parse_query(
+        Dotnet.ts.queries.tests,
+        bufnr,
+        Dotnet.ts.lang.CS,
+        { "namespace", "class", "method" })
 
-        local process_csproj_content = function(file_path, content)
-            local filetype = "xml"
-            local language_tree = vim.treesitter.get_string_parser(content, filetype)
-            local root = language_tree:parse()[1]:root()
+    local tests = {}
+    for _, capture in ipairs(result) do
+        local test = capture.namespace.value .. "." .. capture.class.value .. "." .. capture.method.value
+        table.insert(tests, test)
+    end
+    return tests
+end
 
-            local query = vim.treesitter.query.parse(filetype, project_query .. output_type_query)
+---Build dotnet project in a path
+---@param project string directory path to csproj or csproj file
+---@return boolean whether the build succeeded or failed
+Dotnet.build = function(project)
+    local cmd = "dotnet build -c Debug " .. project .. " > /dev/null"
+    vim.notify("Cmd to execute: " .. cmd, vim.log.levels.DEBUG)
+    local f = os.execute(cmd)
+    if f == 0 then
+        vim.notify("Build: ✔️ ", vim.log.levels.INFO)
+        return true
+    else
+        vim.notify("Build: ❌ (code: " .. f .. ")", vim.log.levels.ERROR)
+        return false
+    end
+end
 
-            for _, captures, _ in query:iter_matches(root, content) do
-                for id, node in pairs(captures) do
-                    local capture = query.captures[id]
-                    if capture == "attrVal" or capture == "type" then
-                        table.insert(projects, file_path)
-                        return true
-                    end
-                end
-            end
-            return false
-        end
+--- Find all the possible dll for a given project.
+---@param project string the project to run
+---@return string[] dll paths
+Dotnet.find_dll = function(project)
+    if vim.fn.fnamemodify(project, ":e") ~= "csproj" then
+        return {}
+    end
 
-        local read_file = function(path)
-            local fd = assert(vim.uv.fs_open(path, "r", 438))
-            local stat = assert(vim.uv.fs_fstat(fd))
-            local data = assert(vim.uv.fs_read(fd, stat.size, 0))
-            assert(vim.uv.fs_close(fd))
-            return data
-        end
+    local content = FS.read_file(project)
+    local dll_name = vim.fn.fnamemodify(project, ":t:r") .. ".dll"
 
-        local on_event = function(job_id, data, event)
-            if event == "stdout" and data then
-                for _, file in ipairs(data) do
-                    if file ~= "" then
-                        local content = read_file(file)
-                        process_csproj_content(file, content)
-                    end
-                end
-            end
-        end
+    local result = Treesitter.parse_query(
+        Dotnet.ts.queries.frameworks,
+        content,
+        Dotnet.ts.lang.CSPROJ,
+        { "frameworks" })
+
+    local frameworks = result[1].frameworks
+
+    local output = {}
+    local root_path = vim.fn.fnamemodify(project, ":h")
+    for _, framework in ipairs(vim.split(frameworks, ";")) do
+        table.insert(output, root_path .. "/bin/Debug/" .. framework .. "/" .. dll_name)
+    end
+    return output
+end
+
+--- TODO: This is unsafe, we could poll forever and just crash
+---@param project string csproj project to test
+---@param test_args table|string|nil additional args to pass to dotnet test command
+---@return integer|nil vshost pid
+Dotnet.test = function(project, test_args)
+    if vim.fn.fnamemodify(project, ":e") ~= "csproj" then
+        return nil
+    end
+
+    -- Filter for the expected dll name, doesn't work AsemblyName is not the same as csproj
+    local result = Dotnet.find_dll(project)[1]
+    vim.fn.jobstart('dotnet test ' .. result .. ' ' .. (test_args or ''),
+        { env = { ["VSTEST_HOST_DEBUG"] = "1" }, })
+    local vstest_predicate = function(proc)
+        return proc.name:find("vstest.console.dll " .. result)
+    end
 
 
-        local job_id = vim.fn.jobstart("git ls-files *.csproj", { on_stdout = on_event, stdout_buffered = true })
-        vim.fn.jobwait({ job_id })
+    local vstest = {}
+    while vim.tbl_isempty(vstest) do -- This blocks the UI.... need a way to avoid this
+        vstest = vim.tbl_filter(vstest_predicate, require 'dap.utils'.get_processes())
+    end
 
-        vim.ui.select(projects, { label = '> ' }, function(choice)
-            local cmd = "dotnet build -c Debug " .. choice .. " > /dev/null"
-            print("")
-            print("Cmd to execute: " .. cmd)
-            local f = os.execute(cmd)
-            if f == 0 then
-                print("\nBuild: ✔️ ")
-            else
-                print("\nBuild: ❌ (code: " .. f .. ")")
-                return
-            end
+    local testhost_predicate = function(proc)
+        return proc.name:find(tostring(vstest[1].pid))
+    end
 
-            -- Filter for the expected dll name, doesn't work AsemblyName is not the same as csproj
-            local result = vim.fn.system({
-                'find',
-                vim.fn.fnamemodify(choice, ":h") .. "/bin",
-                '-name', vim.fn.fnamemodify(choice, ":t:r") .. '.dll' })
+    local host = {}
 
-            local items = vim.split(result, "\n")
-            vim.ui.select(items, { label = '> ' }, function(choice)
-                coroutine.resume(dap_run_co, choice)
-            end)
-        end)
-    end)
+    while vim.tbl_isempty(host) do
+        host = vim.tbl_filter(testhost_predicate, require 'dap.utils'.get_processes())
+    end
+
+    return host[1].pid
 end
 
 vim.g.get_dap_args = function()
@@ -167,33 +307,181 @@ vim.g.get_dap_args = function()
     end)
 end
 
-
-local config = {
-    {
-        type = "netcoredbg",
-        name = "launch - netcoredbg",
-        request = "launch",
-        program = function()
-            return vim.g.dotnet_build_project()
-        end,
-        args = function() return vim.g.get_dap_args() end
-    },
-    {
-        type = "netcoredbg",
-        name = "attach - netcoredbg",
-        request = "attach",
-        processId = require 'dap.utils'.pick_process,
-    }
-}
-
-
 dap.adapters.netcoredbg = {
     type = "executable",
     command = "netcoredbg",
     args = { "--interpreter=vscode" }
 }
 
-dap.configurations.cs = config
+dap.configurations.cs = {
+    {
+        type = "netcoredbg",
+        name = "Run Project",
+        request = "launch",
+        program = function()
+            return coroutine.create(function(dap_run_co)
+                local projects = {}
+
+                local process_csproj_content = function(file_path, content)
+                    local query_result = Treesitter.parse_query(
+                        Dotnet.ts.queries.runnable_projects,
+                        content,
+                        Dotnet.ts.lang.CSPROJ,
+                        { "attrVal", "type" })
+
+                    if not vim.tbl_isempty(query_result) then
+                        table.insert(projects, file_path)
+                    end
+                end
+
+                local on_event = function(job_id, data, event)
+                    if event == "stdout" and data then
+                        for _, file in ipairs(data) do
+                            if file ~= "" then
+                                local content = FS.read_file(file)
+                                process_csproj_content(file, content)
+                            end
+                        end
+                    end
+                end
+
+
+                local job_id = vim.fn.jobstart("git ls-files *.csproj", { on_stdout = on_event, stdout_buffered = true })
+                vim.fn.jobwait({ job_id })
+
+                vim.ui.select(projects, { label = '> ' }, function(choice)
+                    if not Dotnet.build(choice) then return end
+
+                    local result = Dotnet.find_dll(choice)
+                    coroutine.resume(dap_run_co, result[1])
+                end)
+            end)
+        end,
+        args = function() return vim.g.get_dap_args() end
+    },
+    {
+        type = "netcoredbg",
+        name = "Run Current Project",
+        request = "launch",
+        program = function()
+            return coroutine.create(function(dap_run_co)
+                local curr_path = vim.fn.expand("%:h")
+                local project_root = FS.find_root(curr_path, "*.csproj")[1]
+
+
+                if not Dotnet.build(project_root) then return end
+                local result = Dotnet.find_dll(project_root)
+                coroutine.resume(dap_run_co, result[1])
+            end)
+        end,
+        args = vim.g.get_dap_args
+    },
+    {
+        type = "netcoredbg",
+        name = "Attach to Process",
+        request = "attach",
+        processId = require 'dap.utils'.pick_process,
+    },
+    {
+        type = "netcoredbg",
+        name = "Test Project",
+        request = "attach",
+        processId = function()
+            return coroutine.create(function(dap_run_co)
+                local projects = {}
+
+                local process_csproj_content = function(file_path, content)
+                    local result = Treesitter.parse_query(
+                        Dotnet.ts.queries.test_projects,
+                        content,
+                        Dotnet.ts.lang.CSPROJ,
+                        { "value" })
+
+                    if not vim.tbl_isempty(result) then
+                        table.insert(projects, file_path)
+                    end
+                end
+
+                local on_event = function(job_id, data, event)
+                    if event == "stdout" and data then
+                        for _, file in ipairs(data) do
+                            if file ~= "" then
+                                local content = FS.read_file(file)
+                                process_csproj_content(file, content)
+                            end
+                        end
+                    end
+                end
+
+
+                local job_id = vim.fn.jobstart("git ls-files *.csproj", { on_stdout = on_event, stdout_buffered = true })
+                vim.fn.jobwait({ job_id })
+
+                vim.ui.select(projects, { label = '> ' }, function(choice)
+                    if not Dotnet.build(choice) then return end
+
+                    coroutine.resume(dap_run_co, Dotnet.test(choice))
+                end)
+            end)
+        end,
+    },
+    {
+        type = "netcoredbg",
+        name = "Test Current File",
+        request = "attach",
+        processId = function()
+            return coroutine.create(function(dap_run_co)
+                local curr_path = vim.fn.expand("%:p:h")
+                local project_root = FS.find_root(curr_path, "*.csproj")[1]
+
+                local content = FS.read_file(project_root)
+                local query_result = Treesitter.parse_query(
+                    Dotnet.ts.queries.test_projects,
+                    content,
+                    Dotnet.ts.lang.CSPROJ,
+                    { "value" })
+
+                if vim.tbl_isempty(query_result) then
+                    vim.notify(project_root .. " is not a test project", vim.log.levels.ERROR)
+                    return
+                end
+
+
+                if not Dotnet.build(project_root) then return end
+
+                local tests = Dotnet.get_tests(vim.api.nvim_get_current_buf())
+                local result = vim.iter(tests):fold("", function(t, v)
+                    if t == "" then
+                        return v
+                    else
+                        return t .. "|" .. v
+                    end
+                end)
+
+                local test_pid = Dotnet.test(project_root, "--filter " .. result)
+                coroutine.resume(dap_run_co, test_pid)
+            end)
+        end,
+    },
+    {
+        type = "netcoredbg",
+        name = "Test Current Project",
+        request = "attach",
+        processId = function()
+            return coroutine.create(function(dap_run_co)
+                local curr_path = vim.fn.expand("%:p:h")
+                local project_root = FS.find_root(curr_path, "*.csproj")[1]
+
+                if not Dotnet.build(project_root) then return end
+
+                local host_pid = Dotnet.test(project_root)
+                coroutine.resume(dap_run_co, host_pid)
+            end)
+        end,
+    }
+}
+
+
 
 dap.adapters.go = {
     type = "server",
