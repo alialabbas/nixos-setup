@@ -110,6 +110,12 @@ in
         pyright
         findutils.locate
         nodePackages.bash-language-server
+        efm-langserver
+        shellcheck
+        shfmt
+        jq
+        markdownlint-cli
+        hadolint
       ];
     };
 
