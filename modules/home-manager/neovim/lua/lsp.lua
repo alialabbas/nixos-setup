@@ -40,9 +40,9 @@ local on_attach = function(client, bufnr)
     vim.keymap.set("n", "gr", ":Telescope lsp_references<CR>", bufopts)
     vim.keymap.set("n", "<space>f", function() vim.lsp.buf.format { async = true } end, bufopts)
 
-    -- TODO: double check if Omnisharp fixed this issue in the latest version
-    -- TODO: also check if inlay hints is enabled in omnisharp right now
-    -- client.server_capabilities.semanticTokensProvider = nil
+    -- if client.server_capabilities.inlayHintProvider then
+    --     vim.lsp.inlay_hint.enable()
+    -- end
 end
 
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -68,7 +68,17 @@ end
 
 local servers = {
     bashls = {},
-    gopls = {},
+    gopls = {
+        settings = {
+            gopls = {
+                ["ui.inlayhint.hints"] = {
+                    compositeLiteralFields = true,
+                    constantValues = true,
+                    parameterNames = true
+                },
+            },
+        },
+    },
     jsonnet_ls = {},
     pyright = {},
     fsautocomplete = {
@@ -80,7 +90,19 @@ local servers = {
         handlers = {
             ["textDocument/definition"] = require("omnisharp_extended").handler,
         },
-        cmd = { "OmniSharp", "--languageserver", "--hostPID", tostring(vim.fn.getpid()) },
+        cmd = {
+            "OmniSharp",
+            "RoslynExtensionsOptions:InlayHintsOptions:EnableForParameters=true",
+            "RoslynExtensionsOptions:InlayHintsOptions:ForLiteralParameters=true",
+            "RoslynExtensionsOptions:InlayHintsOptions:ForIndexerParameters=true",
+            "RoslynExtensionsOptions:InlayHintsOptions:ForObjectCreationParameters=true",
+            "RoslynExtensionsOptions:InlayHintsOptions:EnableForTypes=true",
+            "RoslynExtensionsOptions:InlayHintsOptions:ForImplicitVariableTypes=true",
+            "RoslynExtensionsOptions:InlayHintsOptions:ForLambdaParameterTypes=true",
+            "RoslynExtensionsOptions:InlayHintsOptions:ForImplicitObjectCreation=true",
+            "--languageserver",
+            "--hostPID",
+            tostring(vim.fn.getpid()) },
     },
     lua_ls = {
         settings = {
@@ -103,6 +125,10 @@ local servers = {
                 },
                 telemetry = {
                     enable = false,
+                },
+                hint = {
+                    enable = true,
+                    setType = true,
                 },
             },
         },

@@ -1,8 +1,3 @@
-vim.api.nvim_set_hl(0, "TabLineIn", { bg = '#abb2bf', fg = '#282c34' })
-vim.api.nvim_set_hl(0, "TabLineHead", { fg = '#282c34', bg = '#61afef' })
-vim.api.nvim_set_hl(0, "TabFill", { bg = "#282c34" })
-vim.api.nvim_set_hl(0, "TabLineSel", { fg = '#282c34', bg = '#61afef' })
-
 require("tabby").setup()
 vim.api.nvim_create_autocmd({ "DirChanged" }, {
     callback = function(args)

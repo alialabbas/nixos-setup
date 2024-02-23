@@ -1,3 +1,13 @@
+require("onedarkpro").setup({
+    highlights = {
+        TabLineIn = { bg = '#abb2bf', fg = '#282c34' },
+        TabLineHead = { fg = '#282c34', bg = '#61afef' },
+        TabFill = { bg = "#282c34" },
+        TabLineSel = { fg = '#282c34', bg = '#61afef' },
+    }
+})
+vim.cmd.colorscheme "onedark"
+
 require "nvim-treesitter.configs".setup {
     indent = {
         enable = false,
@@ -114,6 +124,7 @@ vim.cmd [[:amenu 10.110 Lsp.Peek\ Definition <cmd>:lua = vim.lsp.buf.hover()<CR>
 vim.cmd [[:amenu 10.120 Lsp.Type\ Definition <cmd>:lua vim.lsp.buf.type_definition()<CR>]]
 vim.cmd [[:amenu 10.130 Lsp.Implementations <cmd>:lua vim.lsp.buf.implementation<CR>]]
 vim.cmd [[:amenu 10.140 Lsp.References <cmd>:lua vim.lsp.buf.references()<CR>]]
+vim.cmd [[:amenu 10.150 Lsp.ToggleInlayHint <cmd>: lua vim.lsp.inlay_hint.enable()<CR>]]
 -- vim.cmd [[:amenu 10.150 Lsp.-sep- *]]
 vim.cmd [[:amenu 10.160 Lsp.Rename <cmd>:lua = vim.lsp.buf.rename()<CR>]]
 vim.cmd [[:amenu 10.170 Lsp.Code\ Actions <cmd>:lua = vim.lsp.buf.code_action()<CR>]]

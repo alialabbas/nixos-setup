@@ -36,8 +36,7 @@ in
         telescope-nvim
         telescope-file-browser-nvim
         vim-fugitive
-        onehalf
-        zenburn
+        onedarkpro-nvim
         vim-nixhash
         vim-nix
         {

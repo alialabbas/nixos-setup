@@ -236,7 +236,7 @@ Dotnet.find_dll = function(project)
 
     local output = {}
     local root_path = vim.fn.fnamemodify(project, ":h")
-    for _, framework in ipairs(vim.split(frameworks, ";")) do
+    for _, framework in ipairs(vim.split(frameworks.value, ";")) do
         table.insert(output, root_path .. "/bin/Debug/" .. framework .. "/" .. dll_name)
     end
     return output
