@@ -110,6 +110,28 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
 })
 
 vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+    pattern  = { '*.nix' },
+    callback = function(args)
+        vim.cmd("packadd! vim-nixhash")
+        vim.cmd("packadd! vim-nix")
+        vim.api.nvim_del_autocmd(args.id)
+    end,
+})
+
+vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
     pattern = { "Dockerfile*", "DockerFile*" },
     callback = function() vim.opt_local.filetype = 'dockerfile' end
+})
+
+vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+    pattern = { 'flake.lock', },
+    callback = function() vim.opt_local.filetype = 'json' end
+})
+
+vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+    pattern = { '*.ncl', },
+    callback = function()
+        vim.treesitter.query.set("nickel", "folds",
+            "[ (let_in_block) (fun_expr) (uni_record) (record_field) (ite_expr) (atom) (match_expr)]@fold")
+    end
 })

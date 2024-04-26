@@ -4,7 +4,6 @@ vim.keymap.set("n", "<space>e", vim.diagnostic.open_float, opts)
 vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
 vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
 vim.keymap.set("n", "<space>q", telescope.diagnostics --[[ vim.diagnostic.setloclist ]], opts)
-
 local signs = { Error = '󰅚 ', Warn = '󰀪 ', Hint = '󰌶 ', Info = '󰋽 ' }
 for type, icon in pairs(signs) do
     local hl = "DiagnosticSign" .. type
@@ -38,11 +37,15 @@ local on_attach = function(client, bufnr)
     vim.keymap.set("n", "<space>rn", vim.lsp.buf.rename, bufopts)
     vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action, bufopts)
     vim.keymap.set("n", "gr", ":Telescope lsp_references<CR>", bufopts)
-    vim.keymap.set("n", "<space>f", function() vim.lsp.buf.format { async = true } end, bufopts)
+    vim.keymap.set({ "n", "v" }, "<space>f", function() vim.lsp.buf.format { async = true } end, bufopts)
 
     -- if client.server_capabilities.inlayHintProvider then
     --     vim.lsp.inlay_hint.enable()
     -- end
+
+    if client.server_capabilities.documentFormattingProvider == true then
+        vim.api.nvim_buf_set_option(bufnr, "formatexpr", "v:lua.vim.lsp.formatexpr()")
+    end
 end
 
 local capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -68,6 +71,7 @@ end
 
 local servers = {
     bashls = {},
+    nickel_ls = {},
     gopls = {
         settings = {
             gopls = {
@@ -133,7 +137,38 @@ local servers = {
             },
         },
     },
+    -- For nix, I want to use two servers, nixd for all things autocompletion and selection workspace settings
+    -- nil_ls has useful code action and good nix docs compared to nixd right now
+    nixd = {
+        handlers = {
+            ["textDocument/hover"] = function() end,
+        },
+        -- settings = {
+        --     ['nixd'] = {
+        --         eval = {
+        --             depth = 10,
+        --         },
+        --         formatting = {
+        --             command = "nixpkgs-fmt",
+        --         },
+        --         options = {
+        --             enable = true,
+        --             target = {
+        --                 args = {},
+        --                 installable = ".#nixosConfigurations.framework.options",
+        --             },
+        --         },
+        --     },
+        -- },
+    },
     nil_ls = {
+        on_init = function(client)
+            client.server_capabilities.completionProvider = nil
+            client.server_capabilities.semanticTokensProvider = nil
+        end,
+        handlers = {
+            ["textDocument/completion"] = function() vim.notify_once("nil_ls turned off and won't generated completion") end,
+        },
         settings = {
             ["nil"] = {
                 formatting = {
@@ -227,4 +262,75 @@ vim.api.nvim_create_autocmd({ "BufWritePre" }, {
 vim.api.nvim_create_autocmd({ "BufWritePre" }, {
     pattern = { "*" },
     command = [[ :%s/\s\+$//e ]],
+})
+
+-- This is more of a UI thing, I think mostly what I care about is a simple way to request the status to the notification system rather than just keeping the update happening all the time like how everyone is doing
+require("fidget").setup()
+
+vim.api.nvim_create_autocmd({ 'FileType', }, {
+    pattern = "nix",
+    callback = function(args)
+        local update_nixd_settings = function()
+            local cfgs = {}
+
+            local merge_cfgs = function(_, data, event)
+                if event == "stdout" and data then
+                    local table_cfg = vim.json.decode(data[1])
+                    for _, home_cfg in ipairs(table_cfg) do
+                        table.insert(cfgs, "homeConfigurations." .. home_cfg)
+                    end
+                end
+            end
+
+            local on_event = function(job_id, data, event)
+                if event == "stdout" and data then
+                    local nixos_cfgs = vim.json.decode(data[1])
+                    for _, nixos_cfg in ipairs(nixos_cfgs) do
+                        table.insert(cfgs, "nixosConfigurations." .. nixos_cfg)
+                    end
+
+                    vim.ui.select(cfgs, { label = '> ' }, function(choice)
+                        local settings = {
+                            ['nixd'] = {
+                                eval = {
+                                    depth = 10,
+                                },
+                                formatting = {
+                                    command = "nixpkgs-fmt",
+                                },
+                                options = {
+                                    enable = true,
+                                    target = {
+                                        args = {},
+                                        installable = string.format(".#%s.options", choice),
+                                    },
+                                },
+                            },
+                        }
+
+                        for _, client in ipairs(vim.lsp.get_clients({ name = "nixd" })) do
+                            local result = client.notify("workspace/didChangeConfiguration",
+                                {
+                                    settings = settings,
+                                }
+                            )
+                            vim.notify("updated config " .. tostring(result));
+                            client.config.settings = settings
+                        end
+                    end)
+                end
+            end
+
+            local job_id = vim.fn.jobstart('nix eval .#homeConfigurations --apply builtins.attrNames --json',
+                { on_stdout = merge_cfgs, stdout_buffered = true })
+
+            vim.fn.jobwait({ job_id })
+
+            vim.fn.jobstart('nix eval .#nixosConfigurations --apply builtins.attrNames --json',
+                { on_stdout = on_event, stdout_buffered = true })
+        end
+
+        vim.api.nvim_create_user_command("NixUpdateSettings", update_nixd_settings, {})
+        vim.api.nvim_del_autocmd(args.id)
+    end
 })

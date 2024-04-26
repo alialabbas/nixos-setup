@@ -28,6 +28,15 @@
     # This should be removed in the next nixos release cycle
     # Fusuma + vimPlugins.neotest are broken in the current cycle
     unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+
+    flake-compat = {
+      url = "github:inclyc/flake-compat";
+      flake = false;
+    };
+
+    nickel-unstable = {
+      url = "github:tweag/nickel/1.6.0";
+    };
   };
 
   outputs =
@@ -37,6 +46,7 @@
     , nixos-wsl
     , nixos-hardware
     , neovim-nightly-overlay
+    , nickel-unstable
     , ...
     }@inputs:
 
@@ -48,6 +58,19 @@
           (import ./lib/mkOverlay.nix "" inputs.unstable.legacyPackages.${system} [ "fusuma" ])
           (import ./lib/mkOverlay.nix "vimPlugins" inputs.unstable.legacyPackages.${system} [ "neotest" ])
           neovim-nightly-overlay.overlay
+
+          (self: super: {
+            nickel = inputs.nickel-unstable.packages.${system}.nickel-lang-cli;
+            nls = inputs.nickel-unstable.packages.${system}.lsp-nls;
+
+            # TODO: This overrides correctly, the patch is applied yet the version in rpack is not what I expect
+            vimPlugins = super.vimPlugins // {
+              nvim-treesitter = super.vimPlugins.nvim-treesitter.overrideAttrs
+                (old: {
+                  patches = [ ./nvim-treesitter.patch ];
+                });
+            };
+          })
         ];
 
       # Any nixosConfiguration get added here

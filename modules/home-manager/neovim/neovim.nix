@@ -37,12 +37,20 @@ in
         telescope-file-browser-nvim
         vim-fugitive
         onedarkpro-nvim
-        vim-nixhash
-        vim-nix
+        {
+          plugin = vim-nixhash;
+          optional = true;
+        }
+        {
+          plugin = vim-nix;
+          optional = true;
+        }
         {
           plugin = ansible-vim;
           optional = true;
         }
+        vim-nickel
+
         nvim-dap
         nvim-dap-ui
         nvim-dap-virtual-text
@@ -64,6 +72,7 @@ in
         vim-vsnip
 
         lualine-nvim
+        fidget-nvim
         cmp-nvim-lsp-signature-help
         telescope-ui-select-nvim
         dressing-nvim
@@ -115,6 +124,8 @@ in
         jq
         markdownlint-cli
         hadolint
+        nixd
+        nls
       ];
     };
 

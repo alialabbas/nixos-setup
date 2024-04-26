@@ -1,0 +1,16 @@
+diff --git a/queries/nickel/folds.scm b/queries/nickel/folds.scm
+new file mode 100644
+index 00000000..d9a398da
+--- /dev/null
++++ b/queries/nickel/folds.scm
+@@ -0,0 +1,10 @@
++; Starting fold change for queries
++[
++  (let_in_block)
++  (fun_expr)
++  (uni_record)
++  (record_field)
++  (ite_expr)
++  (atom)
++  (match_expr)
++]@fold

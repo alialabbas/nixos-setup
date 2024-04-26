@@ -7,7 +7,7 @@ in
 
   imports = import ../../lib/mkImportPaths.nix { inherit lib; } ./.;
 
-  xdg. enable = true;
+  xdg.enable = true;
 
   home = {
     stateVersion = "22.11";
@@ -22,7 +22,6 @@ in
     bat
     fd
     htop
-    jq
     ripgrep
     tree
     watch
@@ -33,6 +32,8 @@ in
     ])
     go
     yq
+    jq
+    nickel
     nvd
   ] ++ myPkgs;
 

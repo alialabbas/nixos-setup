@@ -42,7 +42,7 @@
       owner = "luukvbaal";
       repo = "statuscol.nvim";
       rev = "0.10";
-      sha256 = "sha256-sbDwEOGY9U+qoj1jIvPh6hMdpT6vak7sWLU6edgb+Ww=";
+      sha256 = "sha256-I6Wefl83mcMURtJEq1yaR2thxVMfpJmjSplapeVyKYE=";
     };
     meta.homepage = "https://github.com/luukvbaal/statuscol/";
   };
