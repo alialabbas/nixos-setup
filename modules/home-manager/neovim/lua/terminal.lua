@@ -228,7 +228,10 @@ vim.api.nvim_create_autocmd("TabClosed", {
 local create_tab_term = function(open_cmd, resize_cmd, direction)
     local tab_id = get_current_tab()
     if not terminals[tab_id] or not vim.api.nvim_buf_is_valid(terminals[tab_id]) then
-        if direction == "tab" then layouts[tab_id] = save() end
+        if direction == "tab" then
+            layouts[tab_id] = save()
+            vim.cmd("only")
+        end
         vim.cmd(open_cmd)
         terminals[tab_id] = vim.api.nvim_get_current_buf()
         vim.cmd(resize_cmd)
