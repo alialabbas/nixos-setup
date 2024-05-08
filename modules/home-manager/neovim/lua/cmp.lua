@@ -30,6 +30,12 @@ cmp.setup.filetype({ 'xml' }, {
         { name = 'path' }
     }
 })
+-- I don't want to use Nickel LSP becuase it crashes my system, for now what I care about is just autocompletion for keywords in the file
+cmp.setup.filetype({ 'nickel' }, {
+    sources = {
+        { name = 'buffer' },
+    }
+})
 
 require("cmp_git").setup()
 

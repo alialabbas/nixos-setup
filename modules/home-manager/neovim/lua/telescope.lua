@@ -1,11 +1,6 @@
 local icons = require("nvim-nonicons")
 
 require("telescope").setup({
-    extensions = {
-        file_browser = {
-            hijack_netrw = true,
-        },
-    },
     defaults = {
         layout_strategy = "vertical",
         prompt_prefix = "  " .. icons.get("telescope") .. "  ",
@@ -16,7 +11,6 @@ require("telescope").setup({
 
 require('telescope').load_extension('ui-select')
 require('telescope').load_extension('repo')
-require('telescope').load_extension('file_browser')
 require("telescope").load_extension("yaml_schema")
 require('telescope').load_extension('vim_bookmarks')
 

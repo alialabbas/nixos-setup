@@ -33,8 +33,8 @@ in
         comment-nvim
         nvim-lspconfig
         omnisharp-extended-lsp-nvim
+        oil-nvim
         telescope-nvim
-        telescope-file-browser-nvim
         vim-fugitive
         onedarkpro-nvim
         {
@@ -66,6 +66,7 @@ in
         cmp-nvim-lsp
         cmp-vsnip
         cmp-path
+        cmp-buffer
 
         # Documentation
         neogen
@@ -130,6 +131,6 @@ in
     };
 
     # Neovim-remote is a wrapper to not open nested nvim sessions inside a vim terminal and also in a kitty session
-    home.packages = [ nvim-remote ];
+    home.packages = [ nvim-remote pkgs.neovide ];
   };
 }

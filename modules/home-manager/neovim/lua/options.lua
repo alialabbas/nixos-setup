@@ -40,3 +40,10 @@ end
 
 -- Remove Search Results from cmdline
 vim.o.shortmess = vim.o.shortmess .. "S"
+
+
+-- Neovide related options
+if vim.g.neovide then
+    vim.keymap.set('n', '<D-c>', '"+p')
+    vim.keymap.set({ 'i', 'c' }, '<D-v>', '<c-r>+')
+end

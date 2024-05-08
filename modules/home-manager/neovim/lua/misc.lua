@@ -114,6 +114,8 @@ require("gitlinker").setup({
     }
 })
 
+require("oil").setup()
+
 -- Setup menu for easier navigation
 vim.keymap.set({ "v", "n" }, "<F22>", "<cmd>:popup Lsp<CR>")
 

@@ -37,6 +37,8 @@
     nickel-unstable = {
       url = "github:tweag/nickel/1.6.0";
     };
+
+    nur.url = "github:nix-community/NUR";
   };
 
   outputs =
@@ -58,6 +60,7 @@
           (import ./lib/mkOverlay.nix "" inputs.unstable.legacyPackages.${system} [ "fusuma" ])
           (import ./lib/mkOverlay.nix "vimPlugins" inputs.unstable.legacyPackages.${system} [ "neotest" ])
           neovim-nightly-overlay.overlay
+          inputs.nur.overlay
 
           (self: super: {
             nickel = inputs.nickel-unstable.packages.${system}.nickel-lang-cli;

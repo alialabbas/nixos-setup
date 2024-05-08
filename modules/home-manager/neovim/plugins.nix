@@ -41,8 +41,8 @@
     src = fetchFromGitHub {
       owner = "luukvbaal";
       repo = "statuscol.nvim";
-      rev = "0.10";
-      sha256 = "sha256-I6Wefl83mcMURtJEq1yaR2thxVMfpJmjSplapeVyKYE=";
+      rev = "ef3617d0c8cfaa29f7bcdaa8b7cc35df2a409bae";
+      sha256 = "sha256-Rl0VlsExASyx0+Le7VsY4aVQ+LqFWknZSFh40qGWEHI=";
     };
     meta.homepage = "https://github.com/luukvbaal/statuscol/";
   };
