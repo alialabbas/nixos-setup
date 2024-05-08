@@ -38,7 +38,6 @@ in
 
   programs.bash.initExtra = builtins.readFile ./dotnet.sh;
 
-
   programs.firefox = {
     enable = true;
     profiles = {
@@ -47,6 +46,7 @@ in
         name = "default";
         isDefault = true;
         search = {
+          force = true;
           engines = {
             "Nix Packages" = {
               urls = [{
