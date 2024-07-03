@@ -3,7 +3,7 @@
 let
   groups = builtins.filter (x: x != "") [
     (if config.virtualisation.docker.enable then "docker" else "")
-    (if config.services.xserver.libinput.enable then "input" else "")
+    (if config.services.libinput.enable then "input" else "")
     (if config.networking.networkmanager.enable then "networkmanager" else "")
     (if config.services.xserver.enable then "video" else "")
   ];

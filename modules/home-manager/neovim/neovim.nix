@@ -98,6 +98,7 @@ in
         gitlinker-nvim
         alpha-nvim
         vim-rooter
+        statuscol-nvim
       ] ++ customPlugins;
 
       extraLuaConfig = builtins.concatStringsSep "\n"

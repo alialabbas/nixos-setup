@@ -24,7 +24,7 @@ vim.api.nvim_create_autocmd(events, {
     group = vim.api.nvim_create_augroup('PossessionAutosave', { clear = true }),
     callback = function()
         local session = require('possession.session')
-        if session.session_name then
+        if session.get_session_name() then
             session.autosave()
         end
     end

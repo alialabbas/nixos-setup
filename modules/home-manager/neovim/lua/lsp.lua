@@ -39,9 +39,24 @@ local on_attach = function(client, bufnr)
     vim.keymap.set("n", "gr", ":Telescope lsp_references<CR>", bufopts)
     vim.keymap.set({ "n", "v" }, "<space>f", function() vim.lsp.buf.format { async = true } end, bufopts)
 
-    -- if client.server_capabilities.inlayHintProvider then
-    --     vim.lsp.inlay_hint.enable()
-    -- end
+    -- omnisharp is special, doesn't believe in returning server_capabilities
+    if client.server_capabilities.inlayHintProvider or client.name == "omnisharp" then
+        print(vim.inspect(client))
+        vim.lsp.inlay_hint.enable()
+
+        vim.api.nvim_create_autocmd('InsertEnter', {
+            buffer = bufnr,
+            callback = function()
+                vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+            end,
+        })
+        vim.api.nvim_create_autocmd('InsertLeave', {
+            buffer = bufnr,
+            callback = function()
+                vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+            end,
+        })
+    end
 
     if client.server_capabilities.documentFormattingProvider == true then
         vim.api.nvim_buf_set_option(bufnr, "formatexpr", "v:lua.vim.lsp.formatexpr()")

@@ -39,10 +39,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   nixpkgs.config.allowUnfree = lib.mkDefault true;
-
-  services.xserver = {
-    libinput.enable = lib.mkDefault true;
-    libinput.touchpad.horizontalScrolling = true;
+  services.libinput = {
+    enable = lib.mkDefault true;
+    touchpad.horizontalScrolling = true;
   };
 
 

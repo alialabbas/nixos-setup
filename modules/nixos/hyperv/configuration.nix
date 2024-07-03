@@ -52,11 +52,12 @@
 
   users.users.gdm.extraGroups = [ "video" ];
 
+  services.libinput.enable = true;
+
   services.xserver = {
     displayManager = {
       lightdm.enable = false;
       gdm.enable = true;
     };
-    libinput.enable = false;
   };
 }

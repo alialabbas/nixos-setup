@@ -4,7 +4,7 @@ with lib;
 
 {
   nix = {
-    package = pkgs.nixUnstable;
+    package = pkgs.nixVersions.latest;
     extraOptions = ''
       experimental-features = nix-command flakes
       keep-outputs = true
@@ -52,20 +52,22 @@ with lib;
     };
   };
 
+  services.displayManager = {
+    defaultSession = "none+i3";
+  };
+
   services.xserver = {
     enable = lib.mkDefault true;
-    layout = "us";
+    xkb.layout = "us";
 
     desktopManager = {
       xterm.enable = false;
       wallpaper.mode = "fill";
     };
 
-    displayManager = {
-      defaultSession = "none+i3";
-      lightdm.enable = lib.mkDefault true;
-      gdm.enable = lib.mkDefault false; # This is just to bypass freaking hyperv
-    };
+    displayManager.gdm.enable = lib.mkDefault false; # This is just to bypass freaking hyperv
+    displayManager.lightdm.enable = lib.mkDefault true;
+
 
     windowManager = {
       i3.enable = true;

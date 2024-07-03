@@ -3,10 +3,10 @@
 
   inputs = {
 
-    nixpkgs.url = "github:nixos/nixpkgs/release-23.11";
+    nixpkgs.url = "github:nixos/nixpkgs/release-24.05";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-23.11";
+      url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -20,14 +20,7 @@
       url = "github:NixOS/nixos-hardware";
     };
 
-    # This should be removed once neovim has an official release for 0.10
-    neovim-nightly-overlay = {
-      url = "github:nix-community/neovim-nightly-overlay";
-    };
-
-    # This should be removed in the next nixos release cycle
-    # Fusuma + vimPlugins.neotest are broken in the current cycle
-    unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     flake-compat = {
       url = "github:inclyc/flake-compat";
@@ -35,7 +28,7 @@
     };
 
     nickel-unstable = {
-      url = "github:tweag/nickel/1.6.0";
+      url = "github:tweag/nickel/1.7.0";
     };
 
     nur.url = "github:nix-community/NUR";
@@ -47,7 +40,6 @@
     , home-manager
     , nixos-wsl
     , nixos-hardware
-    , neovim-nightly-overlay
     , nickel-unstable
     , ...
     }@inputs:
@@ -57,22 +49,15 @@
 
       overlays =
         [
-          (import ./lib/mkOverlay.nix "" inputs.unstable.legacyPackages.${system} [ "fusuma" ])
-          (import ./lib/mkOverlay.nix "vimPlugins" inputs.unstable.legacyPackages.${system} [ "neotest" ])
-          neovim-nightly-overlay.overlay
           inputs.nur.overlay
 
-          (self: super: {
-            nickel = inputs.nickel-unstable.packages.${system}.nickel-lang-cli;
-            nls = inputs.nickel-unstable.packages.${system}.lsp-nls;
+          (import ./lib/mkOverlay.nix "vimPlugins" inputs.nixos-unstable.legacyPackages.${system} [ "neotest" ])
 
-            # TODO: This overrides correctly, the patch is applied yet the version in rpack is not what I expect
-            vimPlugins = super.vimPlugins // {
-              nvim-treesitter = super.vimPlugins.nvim-treesitter.overrideAttrs
-                (old: {
-                  patches = [ ./nvim-treesitter.patch ];
-                });
-            };
+          (self: super: {
+            neovim = inputs.nixos-unstable.legacyPackages.${system}.neovim;
+            neovim-unwrapped = inputs.nixos-unstable.legacyPackages.${system}.neovim-unwrapped;
+            nickel = inputs.nickel-unstable.packages.${system}.nickel-lang-cli;
+            nls = inputs.nickel-unstable.packages.${system}.nickel-lang-lsp;
           })
         ];
 

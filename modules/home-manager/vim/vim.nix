@@ -34,7 +34,6 @@ in
   home.packages = with pkgs; [
     netcoredbg
     gopls
-    rnix-lsp
     omnisharp-roslyn
     delve
     gcc
