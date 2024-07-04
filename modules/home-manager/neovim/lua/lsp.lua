@@ -41,7 +41,6 @@ local on_attach = function(client, bufnr)
 
     -- omnisharp is special, doesn't believe in returning server_capabilities
     if client.server_capabilities.inlayHintProvider or client.name == "omnisharp" then
-        print(vim.inspect(client))
         vim.lsp.inlay_hint.enable()
 
         vim.api.nvim_create_autocmd('InsertEnter', {
