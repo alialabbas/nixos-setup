@@ -11,6 +11,8 @@ with lib;
       keep-derivations = true
     '';
     gc.automatic = true;
+    gc.options = "--delete-older-than 14d";
+    optimise.automatic = true;
   };
 
   networking = {

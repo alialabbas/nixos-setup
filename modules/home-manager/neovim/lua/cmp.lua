@@ -19,7 +19,6 @@ cmp.setup {
         { name = "nvim_lua" },
         { name = "git" },
         { name = "conventionalcommits" },
-        { name = "buffer" },
         { name = 'nvim_lsp_signature_help' },
     }
 }
@@ -30,8 +29,7 @@ cmp.setup.filetype({ 'xml' }, {
         { name = 'path' }
     }
 })
--- I don't want to use Nickel LSP becuase it crashes my system, for now what I care about is just autocompletion for keywords in the file
-cmp.setup.filetype({ 'nickel' }, {
+cmp.setup.filetype({ 'markdown', 'text' }, {
     sources = {
         { name = 'buffer' },
     }

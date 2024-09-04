@@ -85,7 +85,7 @@ end
 
 local servers = {
     bashls = {},
-    nickel_ls = { autostart = false, },
+    nickel_ls = {},
     gopls = {
         settings = {
             gopls = {

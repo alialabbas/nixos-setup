@@ -17,8 +17,6 @@ let
 
   nvim-remote = import ./nvim-remote.nix {
     writeShellScriptBin = pkgs.writeShellScriptBin;
-    nvim = config.programs.neovim.finalPackage;
-    config = config.programs.neovim.extraLuaConfig;
   };
 
 in
@@ -128,6 +126,7 @@ in
         hadolint
         nixd
         nls
+        nvim-remote
       ];
     };
 

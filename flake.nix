@@ -28,7 +28,7 @@
     };
 
     nickel-unstable = {
-      url = "github:tweag/nickel/1.7.0";
+      url = "github:tweag/nickel";
     };
 
     nur.url = "github:nix-community/NUR";
