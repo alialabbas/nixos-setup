@@ -116,6 +116,22 @@ require("gitlinker").setup({
 
 require("oil").setup()
 
+require("markview").setup({
+    modes = { "n", "no", "c" }, -- Change these modes
+    -- to what you need
+
+    hybrid_modes = { "" }, -- Uses this feature on
+    -- normal mode
+
+    -- This is nice to have
+    callbacks = {
+        on_enable = function(_, win)
+            vim.wo[win].conceallevel = 2;
+            vim.wo[win].concealcursor = "c";
+        end
+    }
+})
+
 -- Setup menu for easier navigation
 vim.keymap.set({ "v", "n" }, "<F22>", "<cmd>:popup Lsp<CR>")
 

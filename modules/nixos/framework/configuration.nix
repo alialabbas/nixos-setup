@@ -45,7 +45,7 @@
   };
 
 
-  services.openssh.enable = false;
+  services.openssh.enable = true;
 
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   networking.networkmanager.enable = lib.mkDefault true;

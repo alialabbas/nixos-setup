@@ -28,7 +28,7 @@
     };
 
     nickel-unstable = {
-      url = "github:tweag/nickel";
+      url = "github:tweag/nickel/1.8.1";
     };
 
     nur.url = "github:nix-community/NUR";
@@ -40,7 +40,6 @@
     , home-manager
     , nixos-wsl
     , nixos-hardware
-    , nickel-unstable
     , ...
     }@inputs:
 
@@ -107,6 +106,7 @@
 
       packages.${system} = import ./nvim.nix {
         inherit self;
+        neovim = inputs.nixos-unstable.legacyPackages.${system}.neovim;
         pkgs = nixpkgs.legacyPackages.${system};
         lib = nixpkgs.lib;
       };

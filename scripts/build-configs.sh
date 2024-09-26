@@ -14,4 +14,3 @@ done
 # figure out a way to progmatically get all home-configuratiosn for a flake
 echo "building home config"
 home-manager build --flake .#home-only
-

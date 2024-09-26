@@ -46,4 +46,18 @@
     };
     meta.homepage = "https://github.com/cljoly/telescope-repo.nvim";
   };
+
+  markview-nvim = vimUtils.buildVimPlugin {
+    pname = "markview.nvim";
+    version = "2024-09-10";
+    src = fetchFromGitHub {
+      owner = "OXY2DEV";
+      repo = "markview.nvim";
+      rev = "f16486e49561740f33b6773df43c9bc2c3c34c7b";
+      sha256 = "1249agw6vfd2p3d3h5lm2ipyif3mgvmmzgix6mz08pipmvq2spx7";
+      fetchSubmodules = true;
+    };
+    meta.homepage = "https://github.com/OXY2DEV/markview.nvim/";
+  };
+
 }

@@ -1,6 +1,5 @@
 { lib, pkgs, config, ... }:
 
-with lib;
 let
   customPlugins = builtins.attrValues (import ./plugins.nix {
     vimUtils =
@@ -15,10 +14,17 @@ let
       ./plugin/.;
   };
 
+  # TODO: probably should just be a wrapper and just call nvim all the time
   nvim-remote = import ./nvim-remote.nix {
     writeShellScriptBin = pkgs.writeShellScriptBin;
   };
 
+  fsharp-sitter = pkgs.fetchFromGitHub {
+    owner = "ionide";
+    repo = "tree-sitter-fsharp";
+    rev = "dcbd07b8860fbde39f207dbc03b36a791986cd96";
+    sha256 = "sha256-9YSywEoXxmLbyj3K888DbrHUBG4DrGTbYesW/SeDVvs=";
+  };
 in
 {
   config = {
@@ -26,7 +32,22 @@ in
       enable = true;
 
       plugins = with pkgs.vimPlugins; [
-        nvim-treesitter.withAllGrammars
+        ((nvim-treesitter.withPlugins (_: nvim-treesitter.allGrammars ++ [
+          (pkgs.tree-sitter.buildGrammar {
+            language = "fsharp";
+            version = "dcbd07b";
+            location = "fsharp";
+            src = fsharp-sitter;
+          })
+        ])).overrideAttrs {
+          postInstall = ''
+            mkdir -p $out/queries/fsharp
+            ls ${fsharp-sitter}/queries/*.scm
+            cp  ${fsharp-sitter}/queries/*.scm $out/queries/fsharp/
+            ls $out/queries/fsharp
+          '';
+        })
+
         nvim-treesitter-context
         comment-nvim
         nvim-lspconfig
