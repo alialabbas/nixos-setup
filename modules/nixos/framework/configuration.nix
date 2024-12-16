@@ -50,8 +50,6 @@
   powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
   networking.networkmanager.enable = lib.mkDefault true;
 
-  sound.enable = lib.mkDefault true;
-
   services.pipewire = {
     enable = lib.mkDefault true;
     alsa.enable = true;

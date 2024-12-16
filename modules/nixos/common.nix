@@ -2,6 +2,7 @@
 
 with lib;
 
+
 {
   nix = {
     package = pkgs.nixVersions.latest;
@@ -93,8 +94,10 @@ with lib;
   environment.systemPackages = with pkgs; [
     gnumake
     killall
-    rxvt_unicode
+    rxvt-unicode-unwrapped
     xclip
+    alsa-utils
+
   ];
 
   system.stateVersion = "20.09";

@@ -3,10 +3,10 @@
 
   inputs = {
 
-    nixpkgs.url = "github:nixos/nixpkgs/release-24.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.05";
+      url = "github:nix-community/home-manager/release-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -20,15 +20,13 @@
       url = "github:NixOS/nixos-hardware";
     };
 
-    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-
     flake-compat = {
       url = "github:inclyc/flake-compat";
       flake = false;
     };
 
     nickel-unstable = {
-      url = "github:tweag/nickel/1.8.1";
+      url = "github:tweag/nickel";
     };
 
     nur.url = "github:nix-community/NUR";
@@ -48,13 +46,9 @@
 
       overlays =
         [
-          inputs.nur.overlay
-
-          (import ./lib/mkOverlay.nix "vimPlugins" inputs.nixos-unstable.legacyPackages.${system} [ "neotest" ])
+          inputs.nur.overlays.default
 
           (self: super: {
-            neovim = inputs.nixos-unstable.legacyPackages.${system}.neovim;
-            neovim-unwrapped = inputs.nixos-unstable.legacyPackages.${system}.neovim-unwrapped;
             nickel = inputs.nickel-unstable.packages.${system}.nickel-lang-cli;
             nls = inputs.nickel-unstable.packages.${system}.nickel-lang-lsp;
           })
@@ -106,7 +100,7 @@
 
       packages.${system} = import ./nvim.nix {
         inherit self;
-        neovim = inputs.nixos-unstable.legacyPackages.${system}.neovim;
+        neovim = inputs.nixpkgs.legacyPackages.${system}.neovim;
         pkgs = nixpkgs.legacyPackages.${system};
         lib = nixpkgs.lib;
       };

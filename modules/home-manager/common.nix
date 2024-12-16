@@ -25,9 +25,8 @@ in
     tree
     watch
     (with dotnetCorePackages; combinePackages [
-      sdk_6_0
-      sdk_7_0
       sdk_8_0
+      sdk_9_0
     ])
     go
     yq
@@ -159,7 +158,7 @@ in
       enable_audio_bell = false;
       linux_display_server = "x11";
     };
-    theme = "One Half Dark";
+    themeFile = "OneHalfDark";
     shellIntegration.enableBashIntegration = true;
   };
 
