@@ -68,7 +68,7 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
         end
 
         vim.api.nvim_create_user_command("HelmTemplate", function() helm_template() end, {})
-        vim.opt_local.makeprg = "helm lint . \\| sed 's/([a-zA-Z]*\\//(/'"
+        vim.opt_local.makeprg = "helm lint . \\| sed 's/([a-zA-Z_\\-]*\\//(/'"
         vim.opt_local.errorformat =
             "%.%#%tRROR on %f: %.%#: %.%#: line %l: %m," ..
             "%.%#%tRROR at (%f:%l): %m," ..
@@ -133,5 +133,16 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
     callback = function()
         vim.treesitter.query.set("nickel", "folds",
             "[ (let_in_block) (fun_expr) (uni_record) (record_field) (ite_expr) (atom) (match_expr)]@fold")
+    end
+})
+
+--TODO: this probably should be done for large files to load them fast
+--The issue is foldtext expression running on large files causing slow load
+vim.api.nvim_create_autocmd({ 'FileType', }, {
+    pattern = "git",
+    callback = function()
+        vim.opt_local.foldtext = ''
+        vim.opt_local.foldmethod = 'manual'
+        vim.opt_local.foldenable = false
     end
 })

@@ -85,6 +85,7 @@ end
 
 local servers = {
     bashls = {},
+    clangd = {},
     nickel_ls = {},
     gopls = {
         settings = {

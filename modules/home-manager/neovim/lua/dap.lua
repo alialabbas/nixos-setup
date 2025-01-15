@@ -345,7 +345,6 @@ dap.configurations.cs = {
                     end
                 end
 
-
                 local job_id = vim.fn.jobstart("git ls-files *.csproj", { on_stdout = on_event, stdout_buffered = true })
                 vim.fn.jobwait({ job_id })
 
