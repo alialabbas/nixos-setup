@@ -68,12 +68,18 @@ in
           plugin = ansible-vim;
           optional = true;
         }
-        vim-nickel
+        {
+          plugin = vim-nickel;
+          optional = true;
+        }
+        {
+          plugin = vim-helm;
+          optional = true;
+        }
 
         nvim-dap
         nvim-dap-ui
         nvim-dap-virtual-text
-        nvim-nonicons
         nvim-web-devicons
 
         # AutoCompletion
@@ -86,21 +92,17 @@ in
         cmp-vsnip
         cmp-path
         cmp-buffer
+        vim-vsnip
+        cmp-nvim-lsp-signature-help
 
         # Documentation
         neogen
-        vim-vsnip
 
         lualine-nvim
         fidget-nvim
-        cmp-nvim-lsp-signature-help
         telescope-ui-select-nvim
         dressing-nvim
 
-        {
-          plugin = vim-helm;
-          optional = true;
-        }
 
         gitsigns-nvim
         dropbar-nvim

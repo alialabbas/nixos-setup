@@ -15,6 +15,8 @@ vim.diagnostic.config({
 })
 
 -- TODO: check file type then from the file type we just change the ccommand for certain things for telescope csharp files
+-- TODO: on_attach should check if the server provides fold and highlight and disable the ts part for those
+-- Some Tokens will need some linking to work
 local on_attach = function(client, bufnr)
     vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
 
@@ -90,6 +92,7 @@ local servers = {
     gopls = {
         settings = {
             gopls = {
+                semanticTokens = true,
                 ["ui.inlayhint.hints"] = {
                     compositeLiteralFields = true,
                     constantValues = true,

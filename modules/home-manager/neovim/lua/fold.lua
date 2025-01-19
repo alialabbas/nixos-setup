@@ -1,8 +1,3 @@
---- I live this fold style, clean simple effective... Until neovim/vim has hightlight, this is the only way without plugins
-function _G.MyFoldText()
-    return vim.fn.getline(vim.v.foldstart) .. ' ... ' .. vim.fn.getline(vim.v.foldend):gsub("^%s*", "")
-end
-
 function _G.HighlightedFoldtext()
     local pos = vim.v.foldstart
     local line = vim.api.nvim_buf_get_lines(0, pos - 1, pos, false)[1]
@@ -19,21 +14,29 @@ function _G.HighlightedFoldtext()
     local line_pos = 0
     local prev_range = nil
 
+    local is_block = false
+
     for id, node, _ in query:iter_captures(tree:root(), 0, pos - 1, pos) do
         local name = query.captures[id]
         local start_row, start_col, end_row, end_col = node:range()
+
         if start_row == pos - 1 and end_row == pos - 1 then
             local range = { start_col, end_col }
             if start_col > line_pos and lang == "json" then
                 local re = string.rep(" ", start_col - line_pos)
-                if #result ~= 0 then re = "" end
+                if #result ~= 0 then re = " " end
                 table.insert(result, { re, "Folded" })
             elseif start_col > line_pos then
                 table.insert(result, { line:sub(line_pos + 1, start_col), "Folded" })
             end
+
             line_pos = end_col
             local text = vim.treesitter.get_node_text(node, 0)
-            if text == '"' then -- TODO: this is really a json thing only
+
+            if text == "{" or text == "[" or text == "(" or text == "[|" then is_block = true end
+            -- TODO: this is really a json thing only
+            if text == '"' and lang == "json" then
+                vim.notify(text)
             elseif prev_range ~= nil and range[1] == prev_range[1] and range[2] == prev_range[2] then
                 result[#result] = { text, "@" .. name }
             else
@@ -45,24 +48,29 @@ function _G.HighlightedFoldtext()
 
     table.insert(result, { " ... ", "Folded" })
 
-    --  TODO: For some reason this will overwrite the middle part in folds in between {}
-    pos = vim.v.foldend
-    for id, node, _ in query:iter_captures(tree:root(), 0, pos - 1, pos) do
-        local name = query.captures[id]
-        local start_row, start_col, end_row, end_col = node:range()
-        if start_row == pos - 1 and end_row == pos - 1 then
-            local range = { start_col, end_col }
-            if start_col > line_pos then
-                table.insert(result, { line:sub(line_pos + 1, start_col), "Folded" })
+    local nix_or_nickel = lang == "nickel" or lang == "nix"
+
+    if is_block then
+        pos = vim.v.foldend
+        for id, node, _ in query:iter_captures(tree:root(), 0, pos - 1, pos) do
+            local name = query.captures[id]
+            local start_row, start_col, end_row, end_col = node:range()
+            if start_row == pos - 1 and end_row == pos - 1 then
+                local range = { start_col, end_col }
+                line_pos = end_col
+                local text = vim.treesitter.get_node_text(node, 0)
+
+                -- TODO: why would I want this?
+                if prev_range ~= nil
+                    and range[1] == prev_range[1]
+                    and range[2] == prev_range[2]
+                    and (not nix_or_nickel) then
+                    result[#result] = { text, "@" .. name }
+                else
+                    table.insert(result, { text, "@" .. name })
+                end
+                prev_range = range
             end
-            line_pos = end_col
-            local text = vim.treesitter.get_node_text(node, 0)
-            if prev_range ~= nil and range[1] == prev_range[1] and range[2] == prev_range[2] then
-                result[#result] = { text, "@" .. name }
-            else
-                table.insert(result, { text, "@" .. name })
-            end
-            prev_range = range
         end
     end
 
