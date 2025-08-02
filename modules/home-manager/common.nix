@@ -157,6 +157,7 @@ in
     settings = {
       enable_audio_bell = false;
       linux_display_server = "x11";
+      cursor_trail = 3;
     };
     themeFile = "OneHalfDark";
     shellIntegration.enableBashIntegration = true;

@@ -36,7 +36,7 @@ function _G.HighlightedFoldtext()
             if text == "{" or text == "[" or text == "(" or text == "[|" then is_block = true end
             -- TODO: this is really a json thing only
             if text == '"' and lang == "json" then
-                vim.notify(text)
+                -- vim.notify(text)
             elseif prev_range ~= nil and range[1] == prev_range[1] and range[2] == prev_range[2] then
                 result[#result] = { text, "@" .. name }
             else

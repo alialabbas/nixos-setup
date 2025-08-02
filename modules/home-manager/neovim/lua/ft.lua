@@ -130,7 +130,11 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
 
 vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
     pattern = { '*.ncl', },
-    callback = function()
+    ---@param opts vim.api.keyset.create_autocmd
+    callback = function(opts)
+        -- Set the file type
+        vim.api.nvim_set_option_value("filetype", "nickel", { buf = opts.buffer })
+        vim.api.nvim_set_option_value("commentstring", "# %s", { buf = opts.buffer })
         vim.treesitter.query.set("nickel", "folds",
             "[(uni_record)  (match_expr) (type_atom) (atom)]@fold")
         -- This just overrides the variable selection to support multi variable function
