@@ -10,17 +10,7 @@
       rev = "4de1e1546abc461f62dee02fcac6a02debd6eb9e";
       sha256 = "sha256-BmX7hyiIMQfcoUl09Y794HrSDq+cj93T+Z5u3e5wqLc=";
     };
-  };
-
-  bookmarks-nvim = vimUtils.buildVimPlugin {
-    pname = "bookmarks-nvim";
-    version = "2024-05-09";
-    src = fetchFromGitHub {
-      owner = "tomasky";
-      repo = "bookmarks.nvim";
-      rev = "0540d52ba64d0ec7677ec1ef14b3624c95a2aaba";
-      sha256 = "sha256-C6ug5GT1endIOYIomSdBwH9wBUPvnF7hkMNL5+jQ9RA=";
-    };
+    doCheck = false;
   };
 
   telescope-repo-nvim = vimUtils.buildVimPlugin {
@@ -41,23 +31,10 @@
     src = fetchFromGitHub {
       owner = "jedrzejboczar";
       repo = "possession.nvim";
-      rev = "09ce7c6cc55923eaf9a8002bb0db3902c639a2ce";
-      sha256 = "sha256-5Nz1kS72e7V99A3+B2vjzo/qXthbqy5lUzl07flug7Y=";
+      rev = "8fb21fabae4e5ffd98386e1b11e9d9d429633bdf";
+      sha256 = "sha256-RJ+6qWBLJDhLqkjuV/ESescWUvmEWkVN9QnBLiLVpbs=";
     };
+    doCheck = false;
     meta.homepage = "https://github.com/cljoly/telescope-repo.nvim";
   };
-
-  markview-nvim = vimUtils.buildVimPlugin {
-    pname = "markview.nvim";
-    version = "2024-09-10";
-    src = fetchFromGitHub {
-      owner = "OXY2DEV";
-      repo = "markview.nvim";
-      rev = "f16486e49561740f33b6773df43c9bc2c3c34c7b";
-      sha256 = "1249agw6vfd2p3d3h5lm2ipyif3mgvmmzgix6mz08pipmvq2spx7";
-      fetchSubmodules = true;
-    };
-    meta.homepage = "https://github.com/OXY2DEV/markview.nvim/";
-  };
-
 }

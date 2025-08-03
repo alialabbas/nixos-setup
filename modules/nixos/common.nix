@@ -41,7 +41,7 @@ with lib;
     fontDir.enable = true;
     enableDefaultPackages = true;
     packages = with pkgs; [
-      (nerdfonts.override { fonts = [ "FiraCode" ]; })
+      nerd-fonts.fira-mono
     ];
   };
 

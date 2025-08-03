@@ -81,6 +81,7 @@ in
         nvim-dap-ui
         nvim-dap-virtual-text
         nvim-web-devicons
+        nvim-nonicons
 
         # AutoCompletion
         cmp-nvim-lua
@@ -120,6 +121,8 @@ in
         alpha-nvim
         vim-rooter
         statuscol-nvim
+
+        markview-nvim
       ] ++ customPlugins;
 
       extraLuaConfig = builtins.concatStringsSep "\n"
