@@ -137,8 +137,8 @@ in
   programs.kitty = {
     enable = lib.mkDefault true;
     font = {
-      package = pkgs.nerd-fonts.fira-mono;
-      name = "Fira Code";
+      package = pkgs.nerd-fonts.fira-code;
+      name = "FiraCode Nerd Font Mono";
       size = 10;
     };
     keybindings = {

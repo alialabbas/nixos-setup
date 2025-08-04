@@ -42,6 +42,7 @@ with lib;
     enableDefaultPackages = true;
     packages = with pkgs; [
       nerd-fonts.fira-mono
+      nerd-fonts.fira-code
     ];
   };
 
