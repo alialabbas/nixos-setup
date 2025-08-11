@@ -29,7 +29,6 @@ in
     enable = true;
     defaultUser = mkDefault "alialabbas";
     startMenuLaunchers = true;
-    nativeSystemd = true;
     wslConf = {
       network = {
         hostname = mkDefault "wsl";
