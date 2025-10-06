@@ -9,7 +9,7 @@
       prettylog = "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(r) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative";
       root = "rev-parse --show-toplevel";
       diffk = "difftool --tool=kitty --no-symlinks --dir-diff";
-      vimdiff = "--no-pager  difftool --tool=nvimdiff --dir-diff";
+      vimdiff = "!git --no-pager  difftool --tool=nvimdiff --dir-diff";
     };
     extraConfig = {
       branch.autosetuprebase = "always";
