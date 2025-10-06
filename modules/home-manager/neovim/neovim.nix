@@ -122,7 +122,10 @@ in
         vim-rooter
         statuscol-nvim
 
-        markview-nvim
+        {
+          plugin = markview-nvim;
+          optional = true;
+        }
       ] ++ customPlugins;
 
       extraLuaConfig = builtins.concatStringsSep "\n"
