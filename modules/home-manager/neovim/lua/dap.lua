@@ -533,5 +533,11 @@ dap.configurations.go = {
         request = "launch",
         program = function() return get_go_mod('.') end,
         mode = "test",
-    }
+    },
+    {
+        type = "go",
+        name = "Attach to Process",
+        request = "attach",
+        processId = require 'dap.utils'.pick_process,
+    },
 }
