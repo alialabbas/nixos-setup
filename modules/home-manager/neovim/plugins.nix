@@ -11,6 +11,7 @@
       sha256 = "sha256-BmX7hyiIMQfcoUl09Y794HrSDq+cj93T+Z5u3e5wqLc=";
     };
     doCheck = false;
+    meta.homepage = "https://github.com/someone-stole-my-name/yaml-companion.nvim";
   };
 
   telescope-repo-nvim = vimUtils.buildVimPlugin {

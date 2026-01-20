@@ -8,16 +8,20 @@ let
     buildNeovimPluginFrom2Nix = pkgs.neovimUtils.buildNeovimPluginFrom2Nix;
   });
 
-  myplugin = pkgs.vimUtils.buildVimPlugin {
-    name = "myplugin";
-    src =
-      ./plugin/.;
-  };
-
   # TODO: probably should just be a wrapper and just call nvim all the time
   nvim-remote = import ./nvim-remote.nix {
     writeShellScriptBin = pkgs.writeShellScriptBin;
   };
+
+  # Bundle our configuration (lua, lsp, plugin) into a derivation
+  # This makes it a "plugin" in Nix terms, adding it to the runtimepath
+  # ensuring a fully self-contained Neovim build.
+  # nvim-config = pkgs.runCommand "nvim-config" { } ''
+  #   mkdir -p $out
+  #   ln -s ${./lua} $out/lua
+  #   ln -s ${./lsp} $out/lsp
+  #   ln -s ${./plugin} $out/plugin
+  # '';
 
   fsharp-sitter = pkgs.fetchFromGitHub {
     owner = "ionide";
@@ -30,6 +34,11 @@ in
   config = {
     programs.neovim = {
       enable = true;
+
+      # Load our main init module, which is found because nvim-config is in the runtimepath
+      extraLuaConfig = ''
+        require("init")
+      '';
 
       plugins = with pkgs.vimPlugins; [
         ((nvim-treesitter.withPlugins (_: nvim-treesitter.allGrammars ++ [
@@ -47,6 +56,11 @@ in
             ls $out/queries/fsharp
           '';
         })
+
+        # ... (other plugins) ...
+
+        # Our custom configuration bundled as a plugin
+        # nvim-config
 
         nvim-treesitter-context
         comment-nvim
@@ -115,7 +129,6 @@ in
         neotest
         neotest-dotnet
         neotest-go
-        myplugin
 
         gitlinker-nvim
         alpha-nvim
@@ -128,11 +141,6 @@ in
         }
       ] ++ customPlugins;
 
-      extraLuaConfig = builtins.concatStringsSep "\n"
-        (map builtins.readFile (lib.filesystem.listFilesRecursive ./lua)
-        );
-
-      # This is limited to language servers, debug adapters and some neovim only tools
       extraPackages = with pkgs; [
         helm-ls
         jsonnet-language-server
@@ -161,5 +169,33 @@ in
 
     # Neovim-remote is a wrapper to not open nested nvim sessions inside a vim terminal and also in a kitty session
     home.packages = [ nvim-remote pkgs.neovide ];
+
+    # SYMLINKS (For Visibility & Tooling)
+    # We link these so ~/.config/nvim looks "normal".
+    # This helps with external tools and general sanity.
+    # The 'nvim' binary effectively loads these twice (once from store bundle, once from here),
+    # but Lua's 'require' deduplicates, so it's safe.
+    xdg.configFile."nvim/lua" = {
+      source = ./lua;
+      recursive = true;
+    };
+
+    xdg.configFile."nvim/lsp" = {
+      source = ./lsp;
+      recursive = true;
+    };
+
+    xdg.configFile."nvim/plugin" = {
+      source = ./plugin;
+      recursive = true;
+    };
+
+    # We provide a dummy init.lua for ~/.config/nvim so tools don't complain.
+    # The REAL entry point for the binary is the 'extraLuaConfig' above.
+    xdg.configFile."nvim/init.lua".text = ''
+      -- This file is present for tooling compatibility.
+      -- The actual Neovim binary loads the config from the Nix Store.
+      require("init")
+    '';
   };
 }

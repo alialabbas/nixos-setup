@@ -1,4 +1,5 @@
 vim.loader.enable()
+
 local options = {
     sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions,globals",
     title = false,
