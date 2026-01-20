@@ -2,9 +2,9 @@
   description = "NixOS development setup";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -21,10 +21,6 @@
     flake-compat = {
       url = "github:inclyc/flake-compat";
       flake = false;
-    };
-
-    nickel-unstable = {
-      url = "github:tweag/nickel";
     };
 
     nur.url = "github:nix-community/NUR";
@@ -48,11 +44,6 @@
         [
           inputs.nur.overlays.default
           inputs.neovim-nightly-overlay.overlays.default
-
-          (self: super: {
-            nickel = inputs.nickel-unstable.packages.${system}.nickel-lang-cli;
-            nls = inputs.nickel-unstable.packages.${system}.nickel-lang-lsp;
-          })
         ];
 
       # Any nixosConfiguration get added here

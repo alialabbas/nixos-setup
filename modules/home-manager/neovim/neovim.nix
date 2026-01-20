@@ -142,7 +142,7 @@ in
         nixpkgs-fmt
         nil
         omnisharp-roslyn
-        sumneko-lua-language-server
+        lua-language-server
         yaml-language-server
         pyright
         findutils.locate

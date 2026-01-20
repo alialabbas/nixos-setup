@@ -57,7 +57,7 @@
     pulse.enable = true;
   };
 
-  services.logind.lidSwitch = "suspend-then-hibernate";
+  services.logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
 
   # TODO: looks like there should be a firmware update for fingerprint device to allow this to work for 13th intel gen frameworks
   # Check this again when 23.11 is out

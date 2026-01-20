@@ -54,7 +54,7 @@
 
   services.libinput.enable = true;
 
-  services.xserver = {
+  services = {
     displayManager = {
       lightdm.enable = false;
       gdm.enable = true;

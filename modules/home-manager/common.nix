@@ -2,6 +2,7 @@
 
 let
   myPkgs = lib.attrValues (import ../../lib/pkgsBuilder.nix { inherit pkgs lib; } ../../pkgs);
+  jqtools = pkgs.callPackage ../../test/jq-tools.nix { };
 in
 {
 
@@ -18,6 +19,7 @@ in
   programs.home-manager.enable = true;
 
   home.packages = with pkgs;[
+    jqtools
     bat
     fd
     htop
@@ -106,6 +108,9 @@ in
       $if Bash
         Space: magic-space
       $endif
+
+      "\C-k": previous-history
+      "\C-j": next-history
     '';
 
   };

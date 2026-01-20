@@ -60,6 +60,7 @@ with lib;
     defaultSession = "none+i3";
   };
 
+  services.displayManager.gdm.enable = lib.mkDefault false; # This is just to bypass freaking hyperv
   services.xserver = {
     enable = lib.mkDefault true;
     xkb.layout = "us";
@@ -69,9 +70,7 @@ with lib;
       wallpaper.mode = "fill";
     };
 
-    displayManager.gdm.enable = lib.mkDefault false; # This is just to bypass freaking hyperv
     displayManager.lightdm.enable = lib.mkDefault true;
-
 
     windowManager = {
       i3.enable = true;
