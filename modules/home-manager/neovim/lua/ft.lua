@@ -57,14 +57,14 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
             end
 
             local buf = vim.api.nvim_create_buf(false, false)
-            vim.api.nvim_buf_set_option(buf, "filetype", "yaml")
+            vim.api.nvim_set_option_value("filetype", "yaml", { buf = buf })
             vim.api.nvim_buf_set_name(buf, "TemplatedChart")
-            vim.api.nvim_buf_set_option(buf, "swapfile", false)
+            vim.api.nvim_set_option_value("swapfile", false, { buf = buf })
             local win = vim.api.nvim_get_current_win()
             vim.api.nvim_win_set_buf(win, buf)
             vim.api.nvim_buf_set_text(buf, 0, 0, 0, 0, vim.split(res.stdout, "\n"))
-            vim.api.nvim_buf_set_option(buf, "modifiable", true)
-            vim.api.nvim_buf_set_option(buf, "buftype", "nowrite")
+            vim.api.nvim_set_option_value("modifiable", true, { buf = buf })
+            vim.api.nvim_set_option_value("buftype", "nowrite", { buf = buf })
         end
 
         vim.api.nvim_create_user_command("HelmTemplate", function() helm_template() end, {})

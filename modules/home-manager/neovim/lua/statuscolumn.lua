@@ -45,7 +45,7 @@ local cfg = {
         {
             -- Dap
             sign = {
-                name = { "DapBreakpoint", "DapStopped", },
+                name = { "DapBreakpoint", "DapStopped", "DapLogPoint" },
                 maxwidth = 1,
                 colwidth = 1,
                 auto = false,

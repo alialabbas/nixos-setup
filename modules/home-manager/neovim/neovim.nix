@@ -92,8 +92,7 @@ in
         }
 
         nvim-dap
-        nvim-dap-ui
-        nvim-dap-virtual-text
+        nvim-dap-view
         nvim-web-devicons
         nvim-nonicons
 
@@ -151,6 +150,7 @@ in
         nil
         omnisharp-roslyn
         lua-language-server
+        emmylua-ls
         yaml-language-server
         pyright
         findutils.locate

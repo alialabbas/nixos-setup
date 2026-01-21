@@ -11,7 +11,11 @@ vim.api.nvim_set_keymap("n", "<F21>" --[[ Shift + F9]],
     [[ <Esc><Cmd>lua vim.ui.input({ prompt = "Breakpoint Condition: ",}, function(input) require("dap").set_breakpoint(input)end)<CR> ]],
     opts)
 
-local dap, dapui = require("dap"), require("dapui")
+vim.api.nvim_set_keymap("n", "<F33>" --[[ Ctrl + F9 ]],
+    [[ <Esc><Cmd>lua vim.ui.input({ prompt = "Log point message: ",}, function(input) if input then require("dap").set_breakpoint(nil, nil, input) end end)<CR> ]],
+    opts)
+
+local dap = require("dap")
 vim.api.nvim_set_hl(0, "DapBreakpoint", { ctermbg = 0, fg = "#993939" })
 vim.api.nvim_set_hl(0, "DapLogPoint", { ctermbg = 0, fg = "#61afef" })
 vim.api.nvim_set_hl(0, "DapStopped", { ctermbg = 0, fg = "#98c379" })
@@ -21,26 +25,10 @@ vim.fn.sign_define("DapBreakpointRejected", { text = "", texthl = "DapBreakpo
 vim.fn.sign_define("DapLogPoint", { text = "", texthl = "DapLogPoint", linehl = "", numhl = "" })
 vim.fn.sign_define("DapStopped", { text = "", texthl = "DapStopped", linehl = "", numhl = "" })
 
-dapui.setup()
-require("nvim-dap-virtual-text").setup({ enabled = false })
-
-local debug_win = nil
-local function open_in_tab()
-    if debug_win and vim.api.nvim_win_is_valid(debug_win) then
-        vim.api.nvim_set_current_win(debug_win)
-        return
-    end
-
-    vim.cmd("tabedit %")
-    debug_win = vim.fn.win_getid()
-    require("dapui").open()
-    local sidebar_sessions = require 'dap.ui.widgets'.sidebar(require 'dap.ui.widgets'.sessions)
-    sidebar_sessions.open()
-    vim.cmd("TabRename Debug")
-end
+require("dap-view").setup({})
 
 dap.listeners.after.event_initialized["dapui_config"] = function()
-    open_in_tab()
+    vim.cmd(":DapViewOpen")
 end
 
 local FS = {}

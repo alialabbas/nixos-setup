@@ -24,8 +24,8 @@ require("zoom")
 local telescope = require('telescope.builtin')
 local opts = { noremap = true, silent = true }
 vim.keymap.set("n", "<space>e", vim.diagnostic.open_float, opts)
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts)
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts)
+vim.keymap.set("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, opts)
+vim.keymap.set("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, opts)
 vim.keymap.set("n", "<space>q", telescope.diagnostics, opts)
 
 vim.diagnostic.config({
@@ -66,10 +66,15 @@ vim.api.nvim_create_autocmd("LspAttach", {
         local client = vim.lsp.get_client_by_id(event.data.client_id)
         local bufopts = { noremap = true, silent = true, buffer = bufnr }
 
+        if client == nil then
+            vim.print("FATAL: Nil client")
+            return
+        end
+
         -- 1. Options
-        vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.vim.lsp.omnifunc")
+        vim.api.nvim_set_option_value("omnifunc", "v:lua.vim.lsp.omnifunc", { buf = bufnr })
         if client.server_capabilities.documentFormattingProvider then
-            vim.api.nvim_buf_set_option(bufnr, "formatexpr", "v:lua.vim.lsp.formatexpr()")
+            vim.api.nvim_set_option_value("formatexpr", "v:lua.vim.lsp.formatexpr()", { buf = bufnr })
         end
 
         -- 2. Keymaps
@@ -126,7 +131,7 @@ local servers = {
     "fsautocomplete",
     "rust_analyzer",
     "omnisharp",
-    "lua_ls",
+    "emmylua_ls",
     "nixd",
     "nil_ls",
     "ansiblels",

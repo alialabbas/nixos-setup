@@ -27,7 +27,7 @@ vim.api.nvim_set_keymap(
 vim.keymap.set(
     "n",
     "<leader>tf",
-    function() require "telescope".extensions.file_browser.file_browser({ path = vim.loop.cwd(), initial_mode = "normal" }) end,
+    function() require "telescope".extensions.file_browser.file_browser({ path = vim.uv.cwd(), initial_mode = "normal" }) end,
     { noremap = true, silent = true })
 
 vim.keymap.set(
