@@ -45,19 +45,23 @@ local function preview_qf_item()
 
     -- Create floating window if it doesn't exist
     if not (preview_win and vim.api.nvim_win_is_valid(preview_win)) then
-        local width = math.floor(vim.o.columns * 0.8)
-        local height = math.floor(vim.o.lines * 0.5)
-        local row = math.floor((vim.o.lines - height) / 2)
-        local col = math.floor((vim.o.columns - width) / 2)
-
+        local qf_win = vim.api.nvim_get_current_win()
+        local qf_pos = vim.api.nvim_win_get_position(qf_win) -- [row, col]
+        local qf_width = vim.api.nvim_win_get_width(qf_win)
+        
+        -- Calculate height: aim for 15 lines, but don't exceed available space above
+        local height = math.min(15, qf_pos[1] - 2)
+        if height < 1 then height = 1 end
+        
         preview_win = vim.api.nvim_open_win(item.bufnr, false, {
             relative = "editor",
-            width = width,
+            width = qf_width - 2,
             height = height,
-            row = row,
-            col = col,
+            row = qf_pos[1] - height - 2, -- Sits exactly 1 line above the QF window to account for border
+            col = qf_pos[2] + 1,           -- Shifted 1 to the right so left border aligns with QF edge
             border = "rounded",
             style = "minimal",
+            zindex = 100,
         })
     end
 
