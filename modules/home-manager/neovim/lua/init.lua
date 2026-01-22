@@ -130,15 +130,14 @@ local servers = {
     "pyright",
     "fsautocomplete",
     "rust_analyzer",
-    "omnisharp",
     "emmylua_ls",
     "nixd",
-    "nil_ls",
     "ansiblels",
     "pylsp",
     "helm_ls",
     "yamlls",
-    "efm"
+    "efm",
+    "roslyn_ls",
 }
 vim.lsp.enable(servers)
 

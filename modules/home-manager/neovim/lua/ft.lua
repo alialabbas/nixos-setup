@@ -110,15 +110,6 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
 })
 
 vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
-    pattern  = { '*.nix' },
-    callback = function(args)
-        vim.cmd("packadd! vim-nixhash")
-        vim.cmd("packadd! vim-nix")
-        vim.api.nvim_del_autocmd(args.id)
-    end,
-})
-
-vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
     pattern = { "Dockerfile*", "DockerFile*" },
     callback = function() vim.opt_local.filetype = 'dockerfile' end
 })

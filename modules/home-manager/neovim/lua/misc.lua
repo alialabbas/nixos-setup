@@ -1,7 +1,4 @@
 require("onedarkpro").setup({
-    -- filetypes = {
-    --     all = false
-    -- },
     highlights = {
         TabLineIn = { bg = '#abb2bf', fg = '#282c34' },
         TabLineHead = { fg = '#282c34', bg = '#61afef' },
@@ -19,10 +16,6 @@ require "nvim-treesitter.configs".setup {
         enable = true
     },
     ensure_installed = {},
-}
-
-require 'treesitter-context'.setup {
-    enable = false,
 }
 
 vim.g.rooter_cd_cmd = 'tcd'
@@ -84,9 +77,6 @@ vim.api.nvim_set_keymap(
     "<leader>to",
     [[ <Esc><Cmd>lua require("neotest").output_panel.toggle()<CR> ]],
     opts)
-
------- COMMENT
-require("Comment").setup()
 
 ------ NEOGEN
 require("neogen").setup {

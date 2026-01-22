@@ -1,3 +1,9 @@
+if not vim.g.loaded_nix_plugins then
+    vim.cmd("packadd vim-nixhash")
+    vim.cmd("packadd vim-nix")
+    vim.g.loaded_nix_plugins = true
+end
+
 local update_nixd_settings = function()
     local cfgs = {}
 

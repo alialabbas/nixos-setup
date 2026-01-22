@@ -57,15 +57,7 @@ in
           '';
         })
 
-        # ... (other plugins) ...
-
-        # Our custom configuration bundled as a plugin
-        # nvim-config
-
-        nvim-treesitter-context
-        comment-nvim
         nvim-lspconfig
-        omnisharp-extended-lsp-nvim
         oil-nvim
         telescope-nvim
         vim-fugitive
@@ -147,7 +139,6 @@ in
         gopls
         delve
         nixpkgs-fmt
-        nil
         omnisharp-roslyn
         lua-language-server
         emmylua-ls
@@ -163,6 +154,7 @@ in
         hadolint
         nixd
         nls
+        roslyn-ls
         nvim-remote
       ];
     };
@@ -170,11 +162,6 @@ in
     # Neovim-remote is a wrapper to not open nested nvim sessions inside a vim terminal and also in a kitty session
     home.packages = [ nvim-remote pkgs.neovide ];
 
-    # SYMLINKS (For Visibility & Tooling)
-    # We link these so ~/.config/nvim looks "normal".
-    # This helps with external tools and general sanity.
-    # The 'nvim' binary effectively loads these twice (once from store bundle, once from here),
-    # but Lua's 'require' deduplicates, so it's safe.
     xdg.configFile."nvim/lua" = {
       source = ./lua;
       recursive = true;
@@ -185,17 +172,9 @@ in
       recursive = true;
     };
 
-    xdg.configFile."nvim/plugin" = {
-      source = ./plugin;
+    xdg.configFile."nvim/after" = {
+      source = ./after;
       recursive = true;
     };
-
-    # We provide a dummy init.lua for ~/.config/nvim so tools don't complain.
-    # The REAL entry point for the binary is the 'extraLuaConfig' above.
-    xdg.configFile."nvim/init.lua".text = ''
-      -- This file is present for tooling compatibility.
-      -- The actual Neovim binary loads the config from the Nix Store.
-      require("init")
-    '';
   };
 }
