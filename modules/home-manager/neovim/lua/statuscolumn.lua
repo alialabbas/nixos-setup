@@ -24,6 +24,7 @@ local cfg = {
         "dapui_breakpoints",
         "dapui_scopes",
         "dap-repl",
+        "qf",
     },
     segments = {
         {
