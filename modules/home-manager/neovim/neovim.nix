@@ -123,7 +123,6 @@ in
 
         gitlinker-nvim
         alpha-nvim
-        vim-rooter
         statuscol-nvim
 
         {
