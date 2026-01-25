@@ -175,5 +175,10 @@ in
       source = ./after;
       recursive = true;
     };
+
+    xdg.configFile."nvim/plugin" = {
+      source = ./plugin;
+      recursive = true;
+    };
   };
 }
