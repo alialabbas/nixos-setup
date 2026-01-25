@@ -5,7 +5,6 @@ require("keymaps")
 -- Plugin Configurations
 require("plugins.cmp")
 require("plugins.dap")
-require("plugins.dashboard")
 require("diff")
 require("fold")
 require("ft")

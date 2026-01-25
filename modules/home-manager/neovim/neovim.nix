@@ -122,8 +122,6 @@ in
         neotest-go
 
         gitlinker-nvim
-        alpha-nvim
-        statuscol-nvim
 
         {
           plugin = markview-nvim;
