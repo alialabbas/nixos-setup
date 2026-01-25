@@ -116,11 +116,6 @@ in
         vim-bookmarks
         telescope-vim-bookmarks-nvim
 
-        # Test Explorer
-        neotest
-        neotest-dotnet
-        neotest-go
-
         gitlinker-nvim
 
         {

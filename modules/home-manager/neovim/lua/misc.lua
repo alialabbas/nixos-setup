@@ -25,54 +25,6 @@ require("dressing").setup({
     }
 })
 
------- NEOTEST
-require("neotest").setup({
-    status = {
-        signs = false,
-        virtual_text = true,
-    },
-    adapters = {
-        require("neotest-dotnet"),
-        require("neotest-go")({
-            experimental = {
-                test_table = true,
-            },
-            args = { "-count=1", "-timeout=60s" }
-        })
-    }
-})
-
-local opts = { noremap = true, silent = true }
-vim.api.nvim_set_keymap(
-    "n",
-    "<leader>tr",
-    [[ <Esc><Cmd>lua require('neotest').run.run()<CR> ]],
-    opts)
-
-vim.api.nvim_set_keymap(
-    "n",
-    "<leader>tf",
-    [[ <Esc><Cmd>lua require('neotest').run.run(vim.fn.expand("%"))<CR> ]],
-    opts)
-
-vim.api.nvim_set_keymap(
-    "n",
-    "<leader>td",
-    [[ <Esc><Cmd>lua require("neotest").run.run({strategy = "dap"})<CR> ]],
-    opts)
-
-vim.api.nvim_set_keymap(
-    "n",
-    "<leader>ts",
-    [[ <Esc><Cmd>lua require("neotest").summary.toggle()<CR> ]],
-    opts)
-
-vim.api.nvim_set_keymap(
-    "n",
-    "<leader>to",
-    [[ <Esc><Cmd>lua require("neotest").output_panel.toggle()<CR> ]],
-    opts)
-
 ------ NEOGEN
 require("neogen").setup {
     languages = {
