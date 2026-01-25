@@ -119,7 +119,7 @@ local function update(is_local)
     end
 
     local listchars_update = function(items)
-        local listchars = vim.api.nvim_get_option_value('listchars', {})
+        local listchars = vim.api.nvim_get_option_value('listchars', { win = 0 })
         for item, val in pairs(items) do
             if listchars:match(item) then
                 listchars = listchars:gsub('(' .. item .. ':)[^,]*', '%1' .. val)
@@ -130,11 +130,11 @@ local function update(is_local)
         return listchars
     end
     local new_listchars = ''
-    if vim.api.nvim_get_option_value('expandtab', {}) then
-        local spaces = vim.api.nvim_get_option_value('shiftwidth', {})
+    if vim.api.nvim_get_option_value('expandtab', { buf = 0 }) then
+        local spaces = vim.api.nvim_get_option_value('shiftwidth', { buf = 0 })
         -- When shiftwidth is 0, vim will use tabstop value
         if spaces == 0 then
-            spaces = vim.api.nvim_get_option_value('tabstop', {})
+            spaces = vim.api.nvim_get_option_value('tabstop', { buf = 0 })
         end
 
         -- Hide the first level of indentation by starting with spaces
@@ -145,11 +145,13 @@ local function update(is_local)
             leadmultispace = pattern,
         })
     else
+        -- For tab-based files, show the tab character directly instead of faking indent lines
         new_listchars = listchars_update({
-            tab = indentline_char .. ' ',
+            tab = '› ',
             leadmultispace = '␣'
         })
-        -- Hide the first tab character using a highlight match
+        -- Hide the first tab character using a highlight match to remove the leftmost guide,
+        -- matching the behavior used for space-based indentation.
         vim.w.indent_match = vim.fn.matchadd('IndentLineHidden', [[^\t]], 10)
     end
     local opts = {}
@@ -171,7 +173,7 @@ vim.api.nvim_create_autocmd({ 'OptionSet' }, {
 vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter', 'FileType' }, {
     group = 'indent_line',
     callback = function()
-        update(false)
+        update(true)
     end,
 })
 
