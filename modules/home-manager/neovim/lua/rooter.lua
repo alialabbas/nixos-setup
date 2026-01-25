@@ -10,7 +10,13 @@ M.config = {
 local function find_root()
     local path = vim.api.nvim_buf_get_name(0)
     if path == "" then return nil end
-    path = vim.fs.dirname(path)
+
+    -- Handle Oil buffers by stripping the prefix and using the directory directly
+    if path:match("^oil://") then
+        path = path:gsub("^oil://", "")
+    else
+        path = vim.fs.dirname(path)
+    end
 
     local root_layer1 = nil
 
@@ -49,8 +55,8 @@ local function find_root()
 end
 
 function M.root()
-    -- Only run for normal buffers
-    if vim.bo.buftype ~= "" then return end
+    -- Only run for normal buffers or Oil buffers
+    if vim.bo.buftype ~= "" and vim.bo.filetype ~= "oil" then return end
 
     local root = find_root()
     if root and root ~= vim.fn.getcwd() then
