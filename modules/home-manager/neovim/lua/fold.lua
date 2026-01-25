@@ -109,9 +109,15 @@ vim.opt.list = true
 
 local indentline_char = '│'
 
-vim.o.listchars = 'trail:•,extends:#,nbsp:.,precedes:❮,extends:❯,tab:› ,leadmultispace:' .. indentline_char .. '  '
+vim.o.listchars = 'trail:•,extends:#,nbsp:.,precedes:❮,extends:❯,tab:› ,leadmultispace:' .. indentline_char .. ' '
 
 local function update(is_local)
+    -- Clear existing match if it exists
+    if vim.w.indent_match then
+        pcall(vim.fn.matchdelete, vim.w.indent_match)
+        vim.w.indent_match = nil
+    end
+
     local listchars_update = function(items)
         local listchars = vim.api.nvim_get_option_value('listchars', {})
         for item, val in pairs(items) do
@@ -130,15 +136,21 @@ local function update(is_local)
         if spaces == 0 then
             spaces = vim.api.nvim_get_option_value('tabstop', {})
         end
+
+        -- Hide the first level of indentation by starting with spaces
+        local pattern = string.rep(' ', spaces) .. string.rep(indentline_char .. string.rep(' ', spaces - 1), 20)
+
         new_listchars = listchars_update({
             tab = '› ',
-            leadmultispace = indentline_char .. string.rep(' ', spaces - 1),
+            leadmultispace = pattern,
         })
     else
         new_listchars = listchars_update({
             tab = indentline_char .. ' ',
             leadmultispace = '␣'
         })
+        -- Hide the first tab character using a highlight match
+        vim.w.indent_match = vim.fn.matchadd('IndentLineHidden', [[^\t]], 10)
     end
     local opts = {}
     if is_local then
@@ -156,9 +168,16 @@ vim.api.nvim_create_autocmd({ 'OptionSet' }, {
     end,
 })
 
-vim.api.nvim_create_autocmd({ 'VimEnter' }, {
+vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter', 'FileType' }, {
     group = 'indent_line',
     callback = function()
         update(false)
     end,
 })
+
+-- Unify indentation guides with the fold gutter style for a cleaner look.
+-- This ensures that 'listchars' (indent lines) match the color and weight of the gutter.
+vim.api.nvim_set_hl(0, 'Whitespace', { link = 'FoldColumn' })
+vim.api.nvim_set_hl(0, 'NonText', { link = 'FoldColumn' })
+-- Define a group that effectively hides the character by matching the background
+vim.api.nvim_set_hl(0, 'IndentLineHidden', { fg = '#282c34', nocombine = true })
