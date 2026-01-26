@@ -66,10 +66,12 @@ cmp.setup.cmdline('/', {
 })
 
 -- Command mode
-cmp.setup.cmdline(':', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = cmp.config.sources({ { name = 'path' } }, { { name = 'cmdline' } })
-})
+-- This code is left as a reminder why we don't use it.
+-- CMP can't support special vars %, # which is why we don't use it
+-- cmp.setup.cmdline(':', {
+--     mapping = cmp.mapping.preset.cmdline(),
+--     sources = cmp.config.sources({ { name = 'path' } }, { { name = 'cmdline' } })
+-- })
 
 cmp.setup.filetype({ 'xml' }, {
     sources = {
@@ -85,4 +87,3 @@ cmp.setup.filetype({ 'markdown', 'text' }, {
 })
 
 require("cmp_git").setup()
-
