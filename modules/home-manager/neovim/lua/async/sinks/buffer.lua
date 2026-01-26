@@ -58,6 +58,7 @@ local function jump_to_error(efm, source_win)
                 if vim.wo[target_win].statuscolumn == "" then
                     vim.wo[target_win].statuscolumn = vim.go.statuscolumn
                     vim.wo[target_win].relativenumber = vim.go.relativenumber
+                    vim.wo[target_win].winfixheight = false
                 end
 
                 if item.lnum > 0 then
@@ -197,6 +198,7 @@ function M.new(opts)
         local win = vim.api.nvim_get_current_win()
         vim.wo[win].statuscolumn = ""
         vim.wo[win].relativenumber = false
+        vim.wo[win].winfixheight = true
 
         if vim.api.nvim_win_is_valid(current_win) then
             vim.api.nvim_set_current_win(current_win)

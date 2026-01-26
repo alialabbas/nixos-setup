@@ -175,6 +175,7 @@ function M.fuzzy_search(args)
 
     vim.cmd("botright sbuffer " .. results_buf)
     vim.api.nvim_win_set_height(0, 15)
+    vim.wo.winfixheight = true
 
     vim.b[results_buf].is_fuzzy_search = true
     vim.b[results_buf].fuzzy_win = results_win
