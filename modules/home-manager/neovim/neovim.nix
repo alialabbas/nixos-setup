@@ -98,6 +98,7 @@ in
         cmp-vsnip
         cmp-path
         cmp-buffer
+        cmp-cmdline
         vim-vsnip
         cmp-nvim-lsp-signature-help
 

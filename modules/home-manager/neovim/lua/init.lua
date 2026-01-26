@@ -3,7 +3,12 @@ require("options")
 require("keymaps")
 
 -- Plugin Configurations
-require("plugins.cmp")
+vim.api.nvim_create_autocmd({ "InsertEnter", "CmdlineEnter" }, {
+    once = true,
+    callback = function()
+        require("plugins.cmp")
+    end,
+})
 require("plugins.dap")
 require("diff")
 require("fold")

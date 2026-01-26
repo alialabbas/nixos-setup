@@ -137,3 +137,56 @@ vim.api.nvim_create_autocmd({ 'FileType', }, {
         vim.opt_local.foldenable = false
     end
 })
+
+vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+    pattern = { '*.csproj' },
+    callback = function(args)
+        local source = {}
+
+        function source:is_available()
+            return vim.fn.expand('%:e') == 'csproj'
+        end
+
+        function source:get_debug_name()
+            return 'csproj'
+        end
+
+        function source:get_trigger_characters()
+            return { '.' }
+        end
+
+        function source:complete(params, callback)
+            local cur_line = params.context.cursor_line
+            local cur_col = params.context.cursor.col
+
+            if string.find(cur_line, 'ProjectReference') then return end
+
+            local nuget_name = string.match(cur_line, 'Include="([^"]*)')
+            if nuget_name == nil then return end
+
+            local find_version = false
+            local _, versionCol = string.find(cur_line, "Version")
+            if versionCol ~= nil and cur_col >= versionCol then
+                find_version = true
+            end
+
+            local command = find_version and "nugetVersions" or "nugetSearch"
+            local Job = require "plenary.job"
+            Job:new {
+                command = command,
+                args = { nuget_name },
+                on_exit = function(job)
+                    local items = {}
+                    for _, val in ipairs(job:result()) do
+                        table.insert(items, { label = val })
+                    end
+                    callback(items)
+                end,
+            }:start()
+        end
+
+        require('cmp').register_source('csproj', source)
+        vim.api.nvim_del_autocmd(args.id)
+    end
+})
+
