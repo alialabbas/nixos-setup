@@ -43,13 +43,6 @@ require("lualine").setup({
         lualine_y = { 'progress',
             {
                 'searchcount',
-                on_click = function(_nb_of_clicks, _button, _modifiers)
-                    require "telescope.builtin".current_buffer_fuzzy_find
-                    {
-                        default_text = vim.fn.getreg("/"),
-                        initial_mode = "normal",
-                    }
-                end
             }
         },
         lualine_z = { 'location' },

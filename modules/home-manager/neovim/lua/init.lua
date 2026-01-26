@@ -3,7 +3,7 @@ require("options")
 require("keymaps")
 
 -- Plugin Configurations
-vim.api.nvim_create_autocmd({ "InsertEnter", "CmdlineEnter" }, {
+vim.api.nvim_create_autocmd({ "InsertEnter", "CmdlineEnter", "ModeChanged" }, {
     once = true,
     callback = function()
         require("plugins.cmp")
@@ -15,23 +15,20 @@ require("fold")
 require("ft")
 require("misc")
 require("rooter")
-require("sessions")
 require("statuscolumn")
 require("statusline")
 require("tabline")
-require("plugins.telescope")
 require("terminal")
 require("winbar")
 require("wsl")
 require("zoom")
 
 -- Diagnostics Config
-local telescope = require('telescope.builtin')
 local opts = { noremap = true, silent = true }
 vim.keymap.set("n", "<space>e", vim.diagnostic.open_float, opts)
 vim.keymap.set("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, opts)
 vim.keymap.set("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, opts)
-vim.keymap.set("n", "<space>q", telescope.diagnostics, opts)
+vim.keymap.set("n", "<space>q", function() vim.diagnostic.setqflist({ open = true }) end, opts)
 
 vim.diagnostic.config({
     virtual_text = false,
@@ -83,11 +80,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         end
 
         -- 2. Keymaps
-        if client.name == "omnisharp" then
-            vim.keymap.set('n', 'gd', ":lua require('omnisharp_extended').telescope_lsp_definitions()<CR>", bufopts)
-        else
-            vim.keymap.set("n", "gd", vim.lsp.buf.definition, bufopts)
-        end
+        vim.keymap.set("n", "gd", vim.lsp.buf.definition, bufopts)
         vim.keymap.set("n", "gD", vim.lsp.buf.declaration, bufopts)
         vim.keymap.set("n", "K", vim.lsp.buf.hover, bufopts)
         vim.keymap.set("n", "gi", vim.lsp.buf.implementation, bufopts)
@@ -104,7 +97,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
         vim.keymap.set({ "n", "v" }, "<space>f", function() vim.lsp.buf.format { async = true } end, bufopts)
 
         -- 3. Inlay Hints
-        if client.server_capabilities.inlayHintProvider or client.name == "omnisharp" then
+        if client.server_capabilities.inlayHintProvider then
             if vim.lsp.inlay_hint then
                 vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
 

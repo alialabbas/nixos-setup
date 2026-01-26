@@ -59,7 +59,6 @@ in
 
         nvim-lspconfig
         oil-nvim
-        telescope-nvim
         vim-fugitive
         onedarkpro-nvim
         {
@@ -107,7 +106,6 @@ in
 
         lualine-nvim
         fidget-nvim
-        telescope-ui-select-nvim
         dressing-nvim
 
 
@@ -115,7 +113,6 @@ in
         dropbar-nvim
         tabby-nvim
         vim-bookmarks
-        telescope-vim-bookmarks-nvim
 
         gitlinker-nvim
 
