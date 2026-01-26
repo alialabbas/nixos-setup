@@ -59,20 +59,6 @@ cmp.setup {
     }
 }
 
--- Search mode
-cmp.setup.cmdline('/', {
-    mapping = cmp.mapping.preset.cmdline(),
-    sources = { { name = 'buffer' } }
-})
-
--- Command mode
--- This code is left as a reminder why we don't use it.
--- CMP can't support special vars %, # which is why we don't use it
--- cmp.setup.cmdline(':', {
---     mapping = cmp.mapping.preset.cmdline(),
---     sources = cmp.config.sources({ { name = 'path' } }, { { name = 'cmdline' } })
--- })
-
 cmp.setup.filetype({ 'xml' }, {
     sources = {
         { name = 'csproj', keyword_length = 4 },
