@@ -1,6 +1,6 @@
 local M = {}
 
----@class Async.Highlighter.Opts
+---@class Async.Processor.Opts
 ---@field pattern? string Regex to extract filename, line, col, and code
 ---@field ft? string Static filetype
 ---@field groups? table<string, string> Custom highlight groups
@@ -34,6 +34,75 @@ local function get_ts_highlights(text, lang)
     table.insert(highlights, { start_col, end_col, hl_group })
   end
   return highlights
+end
+
+function M.create_qf_processor(bufnr, opts)
+    opts = opts or {}
+    local ns = vim.api.nvim_create_namespace("async_qf_" .. bufnr)
+    local efm = opts.efm or vim.bo.errorformat
+    local hls = vim.tbl_extend("force", default_groups, opts.groups or {})
+    
+    -- Generic state to track location across lines
+    local state = { fname = nil, lnum = 0, col = 0 }
+
+    return {
+        ns = ns,
+        process_line = function(text)
+            local qf = vim.fn.getqflist({ lines = { text }, efm = efm })
+            local item = qf.items[1]
+
+            if not item or item.valid == 0 then
+                if opts.qf_only then return nil end
+                return text, {}
+            end
+
+            local fname = vim.fn.bufname(item.bufnr)
+            if fname == "" and item.filename ~= "" then fname = item.filename end
+            
+            -- Update state if this line provides new location info
+            if fname ~= "" then state.fname = fname end
+            if item.lnum > 0 then state.lnum = item.lnum end
+            if item.col > 0 then state.col = item.col end
+
+            -- Logic: If the line has no message text, it's just a location pointer.
+            -- We skip it but keep the location in state for the next line.
+            local message = item.text or ""
+            local clean_msg = message:match("^%s*(.-)%s*$") or ""
+            if clean_msg == "" then
+                return nil
+            end
+
+            -- Use current item info, fallback to state
+            local target_f = (fname ~= "" and fname) or state.fname
+            local target_l = (item.lnum > 0 and item.lnum) or state.lnum
+            local target_c = (item.col > 0 and item.col) or state.col
+
+            if not target_f then
+                if opts.qf_only then return nil end
+                return text, {}
+            end
+
+            -- Construct the compact line: no injected labels, just raw parsed text
+            local new_text = string.format("%s:%d:%d: %s", target_f, target_l, target_c, message)
+            local highlights = {}
+
+            -- Apply standard highlights to the new_text
+            local f_end = #target_f
+            table.insert(highlights, { 0, f_end, hls.filename })
+
+            local l_str = tostring(target_l)
+            local l_start = f_end + 1
+            local l_end = l_start + #l_str
+            table.insert(highlights, { l_start, l_end, hls.line })
+
+            local c_str = tostring(target_c)
+            local c_start = l_end + 1
+            local c_end = c_start + #c_str
+            table.insert(highlights, { c_start, c_end, hls.col })
+
+            return new_text, highlights
+        end
+    }
 end
 
 function M.create_processor(bufnr, opts)

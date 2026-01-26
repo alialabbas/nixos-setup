@@ -104,7 +104,7 @@ function M.request(method)
         winid = winid,
         auto_open = #vim.api.nvim_list_uis() > 0,
         clear = true,
-        processor = require("async.highlighter").create_processor,
+        processor = require("async.processors").create_processor,
       }),
       async.sinks.fidget.new(),
     }

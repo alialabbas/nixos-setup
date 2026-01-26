@@ -31,20 +31,20 @@ function M.ls_files(args)
   end
 
   async.run(cmd, {
-    sinks = {
-      async.sinks.buffer.new({
-        bufnr = bufnr,
-        efm = "%f", -- Paths only
-        winid = winid,
-        auto_open = true,
-        clear = true,
-        processor = require("async.highlighter").create_processor,
-        processor_opts = {
-          pattern = "^(.*)$",
-        },
-      }),
-      async.sinks.notify.new(),
-    }
+        sinks = {
+            async.sinks.buffer.new({
+                bufnr = bufnr,
+                efm = "%f",
+                winid = winid,
+                auto_open = true,
+                clear = true,
+                processor = require("async.processors").create_processor,
+                processor_opts = {
+                    pattern = "^(.*)$"
+                }
+            }),
+            async.sinks.fidget.new()
+        }
   })
 end
 

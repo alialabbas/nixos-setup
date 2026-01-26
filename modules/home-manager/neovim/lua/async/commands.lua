@@ -52,8 +52,9 @@ function M._run_nav_task(type, cmd_str, efm)
     local winid = vim.api.nvim_get_current_win()
     local buf_name = get_task_buf_name(type)
     local bufnr = get_or_create_buf(buf_name)
+    local cmd = vim.fn.expand(cmd_str)
 
-    async.run(cmd_str, {
+    async.run(cmd, {
         sinks = {
             async.sinks.buffer.new({
                 bufnr = bufnr,
@@ -61,6 +62,47 @@ function M._run_nav_task(type, cmd_str, efm)
                 winid = winid,
                 auto_open = true,
                 clear = true
+            }),
+            async.sinks.fidget.new(),
+        }
+    })
+end
+
+function M.test(args)
+    local prg = vim.b.testprg
+    if not prg or prg == "" then
+        return vim.notify("No b:testprg set for this buffer", vim.log.levels.WARN)
+    end
+
+    local efm = (vim.b.testefm and vim.b.testefm ~= "") and vim.b.testefm or vim.bo.errorformat
+    local cmd = get_cmd(prg, args)
+
+    local winid = vim.api.nvim_get_current_win()
+    local project = vim.fn.fnamemodify(vim.uv.cwd(), ":t")
+    local expanded_cmd = vim.fn.expand(cmd)
+
+    async.run(expanded_cmd, {
+        sinks = {
+            -- Sink 1: Compact/Filtered QF View
+            async.sinks.buffer.new({
+                bufnr = get_or_create_buf(string.format("//task/test/qf/%s", project)),
+                efm = "%f:%l:%c: %m",
+                winid = winid,
+                auto_open = true,
+                clear = true,
+                processor = require("async.processors").create_qf_processor,
+                processor_opts = {
+                    efm = efm,
+                    qf_only = true,
+                }
+            }),
+            -- Sink 2: Raw/Full ANSI Log
+            async.sinks.buffer.new({
+                bufnr = get_or_create_buf(string.format("//task/test/raw/%s", project)),
+                winid = winid,
+                auto_open = false, -- Keep hidden by default
+                clear = true,
+                processor = require("async.ansi").create_processor,
             }),
             async.sinks.fidget.new(),
         }
@@ -158,7 +200,7 @@ function M._run_fuzzy_search(query, results_buf, results_win_id)
                 auto_open = false,
                 clear = true,
                 efm = "%f:%l:%c:%m",
-                processor = require("async.highlighter").create_processor,
+                processor = require("async.processors").create_processor,
                 processor_opts = {
                     pattern = "^(.-):(%d+):(%d+):(.*)$"
                 }

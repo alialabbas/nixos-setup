@@ -11,28 +11,16 @@ local M = {}
 ---@field clear? boolean Whether to clear the buffer on start (default: true)
 
 local function get_item_at_cursor(efm)
+    if not efm or efm == "" then return nil end
     local line = vim.api.nvim_get_current_line()
     
-    -- Try standard getqflist parsing first
     local qf = vim.fn.getqflist({ lines = { line }, efm = efm })
     local item = qf.items[1]
 
-    -- Buddy Fallback: If qflist failed or yielded line 0, try a direct regex parse
-    -- This handles the common "file:line:col:text" format used by rg and our highlighter
-    if not item or item.valid == 0 or item.lnum == 0 then
-        local f, l, c = line:match("^(.-):(%d+):(%d+):")
-        if f and l then
-            item = {
-                filename = f,
-                lnum = tonumber(l),
-                col = tonumber(c) or 0,
-                valid = 1,
-                bufnr = 0
-            }
-        end
+    if item and item.valid == 1 then
+        return item
     end
-
-    return item
+    return nil
 end
 
 local function jump_to_error(efm, source_win)
@@ -227,9 +215,12 @@ function M.new(opts)
             local clean_lines, highlights = {}, {}
             for i, raw_line in ipairs(lines) do
                 local clean, line_hls = processor.process_line(raw_line)
-                table.insert(clean_lines, clean)
-                for _, hl in ipairs(line_hls) do
-                    table.insert(highlights, { start_line + i - 1, hl[1], hl[2], hl[3] })
+                if clean then
+                    table.insert(clean_lines, clean)
+                    local current_line_idx = start_line + #clean_lines - 1
+                    for _, hl in ipairs(line_hls) do
+                        table.insert(highlights, { current_line_idx, hl[1], hl[2], hl[3] })
+                    end
                 end
             end
 

@@ -1,3 +1,7 @@
+vim.api.nvim_create_user_command("Test", function(opts)
+    require("async.commands").test(opts.args)
+end, { nargs = "*", complete = "file" })
+
 vim.api.nvim_create_user_command("Make", function(opts)
     require("async.commands").make(opts.args)
 end, { nargs = "*", complete = "file" })
