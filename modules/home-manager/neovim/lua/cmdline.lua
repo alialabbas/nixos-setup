@@ -7,7 +7,6 @@ local show_timer = vim.uv.new_timer()
 
 local config = {
     min_width = 40,
-    max_width = 100,
     max_height = 12,
     border = 'rounded',
     highlight = {
@@ -78,14 +77,11 @@ function M.show()
     -- Window Geometry
     local height = math.min(#current_list, config.max_height)
     local max_l = 0
-    if not win_id then -- Only calculate width on first open to prevent jitter
-        for _, l in ipairs(current_list) do
-            max_l = math.max(max_l, #l + 4)
-        end
+    for _, l in ipairs(current_list) do
+        max_l = math.max(max_l, #l + 4)
     end
 
-    local width = win_id and vim.api.nvim_win_get_width(win_id) or
-    math.min(math.max(max_l, config.min_width), config.max_width)
+    local width = math.max(config.min_width, math.min(max_l, vim.o.columns - 5))
     local row = math.max(0, vim.o.lines - height - 3)
 
     local opts = {
