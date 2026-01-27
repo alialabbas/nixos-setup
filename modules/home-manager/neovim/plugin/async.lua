@@ -33,7 +33,11 @@ local function task_complete(ArgLead, CmdLine, CursorPos)
     -- Contextual completion
     local subcommand = parts[2]
     if subcommand == "run" then
-        return vim.fn.getcompletion(ArgLead, "file")
+        if n == 3 then
+            return vim.fn.getcompletion(ArgLead, "shellcmd")
+        else
+            return vim.fn.getcompletion(ArgLead, "file")
+        end
     elseif subcommand == "stop" and n == 3 then
         local async = require("async")
         local tasks = async.list()
