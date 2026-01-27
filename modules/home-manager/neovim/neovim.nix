@@ -87,19 +87,6 @@ in
         nvim-web-devicons
         nvim-nonicons
 
-        # AutoCompletion
-        cmp-nvim-lua
-        cmp-git
-        cmp-conventionalcommits
-        cmp-dap
-        nvim-cmp
-        cmp-nvim-lsp
-        cmp-vsnip
-        cmp-path
-        cmp-buffer
-        vim-vsnip
-        cmp-nvim-lsp-signature-help
-
         # Documentation
         neogen
 

@@ -30,6 +30,7 @@ local options = {
     number = true,
     relativenumber = true,
     signcolumn = "yes",
+    completeopt = "menu,menuone,noselect",
 }
 
 for k, v in pairs(options) do
