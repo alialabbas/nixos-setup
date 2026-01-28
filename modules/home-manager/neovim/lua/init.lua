@@ -1,4 +1,5 @@
 -- Core Configuration
+require("ui")
 require("options")
 require("keymaps")
 

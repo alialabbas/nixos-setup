@@ -92,7 +92,6 @@ in
 
         lualine-nvim
         fidget-nvim
-        dressing-nvim
 
 
         gitsigns-nvim

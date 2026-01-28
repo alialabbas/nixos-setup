@@ -18,13 +18,6 @@ require "nvim-treesitter.configs".setup {
     ensure_installed = {},
 }
 
-require("dressing").setup({
-    input = {
-        relative = "editor",
-        winhighlight = "FloatTitle:Normal", -- fix float title visibilty
-    }
-})
-
 ------ NEOGEN
 require("neogen").setup {
     languages = {

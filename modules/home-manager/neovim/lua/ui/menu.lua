@@ -60,7 +60,8 @@ function M:open(items, geometry)
         height = height,
         style = 'minimal',
         border = self.config.border,
-        focusable = false,
+        title = self.config.title,
+        focusable = self.config.focusable ~= nil and self.config.focusable or false,
         noautocmd = true,
         zindex = 250,
     }, geometry or {})
