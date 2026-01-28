@@ -36,6 +36,15 @@ local function task_complete(ArgLead, CmdLine, CursorPos)
         if n == 3 then
             return vim.fn.getcompletion(ArgLead, "shellcmd")
         else
+            -- Extract the full command line part after 'Task run '
+            -- We want to pass this to the shell to get contextual completions
+            local task_cmd_line = CmdLine:match("^%s*Task%s+run%s+(.*)$")
+            if task_cmd_line then
+                local shell_comps = require("async.completion").shell_complete(task_cmd_line, ArgLead)
+                if #shell_comps > 0 then
+                    return shell_comps
+                end
+            end
             return vim.fn.getcompletion(ArgLead, "file")
         end
     elseif subcommand == "stop" and n == 3 then
