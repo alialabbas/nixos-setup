@@ -18,6 +18,14 @@ vim.api.nvim_create_user_command("FuzzySearch", function(opts)
   require("async.commands").fuzzy_search(opts.args)
 end, { nargs = "*" })
 
+vim.api.nvim_create_user_command("NextError", function()
+    require("async.controller").navigate(1)
+end, {})
+
+vim.api.nvim_create_user_command("PrevError", function()
+    require("async.controller").navigate(-1)
+end, {})
+
 local function task_complete(ArgLead, CmdLine, CursorPos)
     local parts = vim.split(CmdLine:sub(1, CursorPos), "%s+")
     local n = #parts

@@ -10,50 +10,6 @@ local M = {}
 ---@field auto_open? boolean Whether to automatically open the buffer at the bottom
 ---@field clear? boolean Whether to clear the buffer on start (default: true)
 
-local function parse_item(line, efm)
-    if not efm or efm == "" or not line then return nil end
-    local qf = vim.fn.getqflist({ lines = { line }, efm = efm })
-    local item = qf.items[1]
-    if item and item.valid == 1 then
-        return item
-    end
-    return nil
-end
-
-local function perform_jump(item, source_win)
-    if not item then return end
-
-    local bufnr = item.bufnr == 0 and item.filename ~= "" and vim.fn.bufadd(item.filename) or item.bufnr
-    if bufnr ~= 0 then
-        local target_win = source_win
-        if not target_win or not vim.api.nvim_win_is_valid(target_win) then
-            for _, win in ipairs(vim.api.nvim_list_wins()) do
-                if vim.api.nvim_win_get_config(win).relative == "" then
-                    target_win = win
-                    break
-                end
-            end
-        end
-
-        if target_win then
-            vim.api.nvim_set_current_win(target_win)
-            vim.api.nvim_win_set_buf(target_win, bufnr)
-
-            -- Restore UI if the target window was previously a sink or inherited muted settings
-            if vim.wo[target_win].statuscolumn == "" then
-                vim.wo[target_win].statuscolumn = vim.go.statuscolumn
-                vim.wo[target_win].relativenumber = vim.go.relativenumber
-                vim.wo[target_win].winfixheight = false
-            end
-
-            if item.lnum > 0 then
-                vim.api.nvim_win_set_cursor(target_win, { item.lnum, math.max(0, item.col - 1) })
-                vim.cmd("normal! zz")
-            end
-        end
-    end
-end
-
 local function delete_line(bufnr)
     local count = vim.v.count1
     local cursor = vim.api.nvim_win_get_cursor(0)
@@ -106,7 +62,7 @@ function M.new(opts)
     local function preview_item()
         if not opts.efm then return end
         local line = vim.api.nvim_get_current_line()
-        local item = parse_item(line, opts.efm)
+        local item = utils.parse_item(line, opts.efm)
         if not (item and item.valid == 1) then return end
 
         local target_bufnr = item.bufnr == 0 and item.filename ~= "" and vim.fn.bufadd(item.filename) or item.bufnr
@@ -244,9 +200,9 @@ function M.new(opts)
             local count = vim.api.nvim_buf_line_count(bufnr)
             if count == 1 and not opened then
                 local content = vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1]
-                local item = parse_item(content, opts.efm)
+                local item = utils.parse_item(content, opts.efm)
                 if item then
-                    perform_jump(item, source_win)
+                    utils.perform_jump(item, source_win)
                 else
                     open_buffer()
                 end
@@ -293,8 +249,8 @@ function M.new(opts)
                 vim.keymap.set("n", "<CR>", function()
                     close_preview()
                     local line = vim.api.nvim_get_current_line()
-                    local item = parse_item(line, opts.efm)
-                    perform_jump(item, source_win)
+                    local item = utils.parse_item(line, opts.efm)
+                    utils.perform_jump(item, source_win)
                 end, { buffer = bufnr, desc = "Jump to error" })
                 vim.keymap.set("n", "P", function()
                     if preview_win and vim.api.nvim_win_is_valid(preview_win) then

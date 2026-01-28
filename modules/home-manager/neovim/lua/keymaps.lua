@@ -17,3 +17,7 @@ vim.api.nvim_set_keymap("c", "<C-h>", "<Left>", opt)
 vim.api.nvim_set_keymap("c", "<C-j>", "<Down>", opt)
 vim.api.nvim_set_keymap("c", "<C-k>", "<Up>", opt)
 vim.api.nvim_set_keymap("c", "<C-l>", "<Right>", opt)
+
+-- Task & Navigation Keymaps
+vim.keymap.set("n", "]q", ":NextError<CR>", { silent = true, desc = "Next error/item in current task" })
+vim.keymap.set("n", "[q", ":PrevError<CR>", { silent = true, desc = "Previous error/item in current task" })
