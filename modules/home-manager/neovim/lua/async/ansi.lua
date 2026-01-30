@@ -26,7 +26,7 @@ end
 
 ---@class Async.AnsiProcessor
 ---@field ns number
----@field process_line fun(text: string): string, table[]
+---@field process_line fun(text: string): string, table[], boolean? # text, highlights, is_valid
 
 ---Create an ANSI processor for a buffer
 ---@param bufnr number

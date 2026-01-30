@@ -63,8 +63,7 @@ function M.create_qf_processor(bufnr, opts)
             local item = qf.items[1]
 
             if not item or item.valid == 0 then
-                if opts.qf_only then return nil end
-                return text, {}
+                return nil
             end
 
             local fname = vim.fn.bufname(item.bufnr)
@@ -89,8 +88,7 @@ function M.create_qf_processor(bufnr, opts)
             local target_c = (item.col > 0 and item.col) or state.col
 
             if not target_f then
-                if opts.qf_only then return nil end
-                return text, {}
+                return nil
             end
 
             -- Construct the compact line: no injected labels, just raw parsed text
@@ -132,7 +130,7 @@ function M.create_processor(bufnr, opts)
       local captures = { text:match(pattern) }
 
       if #captures == 0 then
-        return text, highlights
+        return nil
       end
 
       local f = captures[1]

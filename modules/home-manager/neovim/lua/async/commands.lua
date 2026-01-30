@@ -105,7 +105,6 @@ function M.test(args)
                 processor = require("async.processors").create_qf_processor,
                 processor_opts = {
                     efm = efm,
-                    qf_only = true,
                 }
             }),
             -- Sink 2: Raw/Full ANSI Log
