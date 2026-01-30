@@ -1,0 +1,14 @@
+return {
+  _all = {
+    coverage = false,
+    lpath = "lua/?.lua;lua/?/init.lua",
+    -- lua = "./shim",
+    lua = "nvim -l"
+  },
+  default = {
+    verbose = true
+  },
+  tests = {
+    verbose = true
+  },
+}
