@@ -6,6 +6,9 @@ vim.api.nvim_create_autocmd({ "DirChanged" }, {
     end,
 })
 
+---Check if any buffer in the tab is modified
+---@param tab number Tab ID
+---@return string Icon representing modified state
 local function tab_modified(tab)
     local wins = require("tabby.module.api").get_tab_wins(tab)
     for _, x in pairs(wins) do

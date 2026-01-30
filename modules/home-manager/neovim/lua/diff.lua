@@ -18,9 +18,11 @@ local function diff_dirs(dir1, dir2)
         vim.cmd('diffthis')
     elseif vim.fn.isdirectory(dir1) == 1 and vim.fn.isdirectory(dir2) == 1 then
         vim.notify(string.format("Diffing %s and %s", dir1, dir2))
+        ---@type string[]
         local files1 = vim.iter(vim.fn.glob(dir1 .. '/**', false, true))
             :filter(function(elem) return vim.fn.filereadable(elem) == 1 end)
             :totable()
+        ---@type string[]
         local files2 = vim.iter(vim.fn.glob(dir2 .. '/**', false, true))
             :filter(function(elem) return vim.fn.filereadable(elem) == 1 end)
             :totable()

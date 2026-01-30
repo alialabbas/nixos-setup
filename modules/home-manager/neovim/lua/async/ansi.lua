@@ -16,11 +16,21 @@ for i = 30, 37 do
   color_map[i + 60] = color_map[i]
 end
 
+---Strip ANSI escape codes from a string
+---@param str? string
+---@return string?
 function M.strip(str)
   if not str then return str end
   return str:gsub("\27%[[0-9;]*[mK]", "")
 end
 
+---@class Async.AnsiProcessor
+---@field ns number
+---@field process_line fun(text: string): string, table[]
+
+---Create an ANSI processor for a buffer
+---@param bufnr number
+---@return Async.AnsiProcessor
 function M.create_processor(bufnr)
   local ns = vim.api.nvim_create_namespace("async_ansi_" .. bufnr)
   local state = { fg = nil }

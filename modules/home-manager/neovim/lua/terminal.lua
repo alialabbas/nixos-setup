@@ -9,6 +9,9 @@
 -- :Term <name>             -> New or Existing terminal named <name> (Shell)
 -- :Term <name> <cmd...>    -> New terminal named <name> running <cmd>
 
+---Get formatted terminal name
+---@param suffix string
+---@return string
 local function get_term_name(suffix)
     return "term://" .. vim.fn.getcwd() .. "//" .. suffix
 end

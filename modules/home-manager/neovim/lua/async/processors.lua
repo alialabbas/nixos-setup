@@ -4,6 +4,9 @@ local M = {}
 ---@field pattern? string Regex to extract filename, line, col, and code
 ---@field ft? string Static filetype
 ---@field groups? table<string, string> Custom highlight groups
+---@field efm? string Error format
+---@field qf_only? boolean Only show valid quickfix items
+---@field processor_opts? table
 
 local default_groups = {
   filename = "Directory",
@@ -11,6 +14,10 @@ local default_groups = {
   col = "Special",
 }
 
+---Get treesitter highlights for a string
+---@param text string
+---@param lang string
+---@return table[]
 local function get_ts_highlights(text, lang)
   if not lang or lang == "" then return {} end
   local has_ts, ts = pcall(require, "vim.treesitter")
@@ -18,10 +25,10 @@ local function get_ts_highlights(text, lang)
 
   local ok_parser, parser = pcall(ts.get_string_parser, text, lang)
   if not ok_parser or not parser then return {} end
-  
+
   local ok_tree, tree = pcall(parser.parse, parser)
   if not (ok_tree and tree and tree[1]) then return {} end
-  
+
   local ok_query, query = pcall(ts.query.get, lang, "highlights")
   if not (ok_query and query) then return {} end
 
@@ -36,12 +43,16 @@ local function get_ts_highlights(text, lang)
   return highlights
 end
 
+---Create a quickfix-based processor
+---@param bufnr number
+---@param opts? Async.Processor.Opts
+---@return Async.AnsiProcessor
 function M.create_qf_processor(bufnr, opts)
     opts = opts or {}
     local ns = vim.api.nvim_create_namespace("async_qf_" .. bufnr)
     local efm = opts.efm or vim.bo.errorformat
     local hls = vim.tbl_extend("force", default_groups, opts.groups or {})
-    
+
     -- Generic state to track location across lines
     local state = { fname = nil, lnum = 0, col = 0 }
 
@@ -58,7 +69,7 @@ function M.create_qf_processor(bufnr, opts)
 
             local fname = vim.fn.bufname(item.bufnr)
             if fname == "" and item.filename ~= "" then fname = item.filename end
-            
+
             -- Update state if this line provides new location info
             if fname ~= "" then state.fname = fname end
             if item.lnum > 0 then state.lnum = item.lnum end
@@ -105,6 +116,10 @@ function M.create_qf_processor(bufnr, opts)
     }
 end
 
+---Create a pattern-based processor
+---@param bufnr number
+---@param opts? Async.Processor.Opts
+---@return Async.AnsiProcessor
 function M.create_processor(bufnr, opts)
     opts = opts or {}
     local ns = vim.api.nvim_create_namespace("async_hl_" .. bufnr)
@@ -115,7 +130,7 @@ function M.create_processor(bufnr, opts)
     process_line = function(text)
       local highlights = {}
       local captures = { text:match(pattern) }
-      
+
       if #captures == 0 then
         return text, highlights
       end
@@ -154,7 +169,7 @@ function M.create_processor(bufnr, opts)
                   if code_start then
                     code_start = code_start - 1
                     local ft = opts.ft or vim.filetype.match({ filename = f })
-                    
+
                     if ft then
                       local ts_hls = get_ts_highlights(code, ft)
                       for _, hl in ipairs(ts_hls) do
@@ -168,7 +183,7 @@ function M.create_processor(bufnr, opts)
           end
         end
       end
-      
+
       return text, highlights
     end
   }

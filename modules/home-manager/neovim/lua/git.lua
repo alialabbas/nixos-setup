@@ -1,6 +1,9 @@
 local async = require("async")
 local M = {}
 
+---Get or create a buffer by name
+---@param name string
+---@return number
 local function get_or_create_buf(name)
   local bufnr = vim.fn.bufnr("^" .. name .. "$")
   if bufnr ~= -1 then
@@ -11,6 +14,8 @@ local function get_or_create_buf(name)
   return b
 end
 
+---Run git ls-files asynchronously
+---@param args? string|string[]
 function M.ls_files(args)
   local project = vim.fn.fnamemodify(vim.uv.cwd(), ":t")
   local buf_name = string.format("//git/%s", project)
@@ -48,9 +53,11 @@ function M.ls_files(args)
   })
 end
 
+---Proxy function for Git command
+---@param opts table
 function M.proxy(opts)
   local fargs = opts.fargs
-  
+
   local is_ls = false
   for _, arg in ipairs(fargs) do
     if arg == "ls-files" then is_ls = true break end
@@ -77,6 +84,11 @@ function M.proxy(opts)
   end
 end
 
+---Completion function for Git command
+---@param ArgLead string
+---@param CmdLine string
+---@param CursorPos number
+---@return string[]
 function M.complete(ArgLead, CmdLine, CursorPos)
   local result = {}
   local seen = {}

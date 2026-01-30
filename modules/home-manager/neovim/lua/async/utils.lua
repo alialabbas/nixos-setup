@@ -1,8 +1,8 @@
 local M = {}
 
 ---Creates a line-buffered wrapper around a callback
----@param callback fun(lines: string[], is_exit: boolean, exit_obj?: table)
----@return fun(data: string|table, is_exit: boolean)
+---@param callback fun(lines: string[], is_exit: boolean, exit_obj?: any)
+---@return fun(data: string|any, is_exit: boolean)
 function M.line_buffered(callback)
   local partial = ""
   return function(data, is_exit)
@@ -33,6 +33,9 @@ function M.line_buffered(callback)
 end
 
 ---Parse a line using errorformat
+---@param line string
+---@param efm string
+---@return table|nil
 function M.parse_item(line, efm)
     if not efm or efm == "" or not line then return nil end
     local qf = vim.fn.getqflist({ lines = { line }, efm = efm })
@@ -44,6 +47,8 @@ function M.parse_item(line, efm)
 end
 
 ---Perform a jump to a quickfix-like item
+---@param item table
+---@param source_win? number
 function M.perform_jump(item, source_win)
     if not item then return end
 

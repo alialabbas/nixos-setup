@@ -1,7 +1,9 @@
 local ansi = require("async.ansi")
 local M = {}
 
+---Create a new notify sink
 ---@param opts? table
+---@return Async.Sink
 function M.new(opts)
   return {
     on_start = function(task)

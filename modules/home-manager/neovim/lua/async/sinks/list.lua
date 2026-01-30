@@ -9,6 +9,9 @@ local M = {}
 ---@field winnr? number For loclist
 ---@field text_func? string|function
 
+---Create a new list sink (quickfix or loclist)
+---@param opts? Async.Sink.ListOpts
+---@return Async.Sink
 function M.new(opts)
   opts = opts or {}
   local is_loc = opts.type == "loclist"

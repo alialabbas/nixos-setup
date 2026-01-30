@@ -4,6 +4,7 @@ local ui = menu.new({
 })
 
 local M = {}
+---@type any[]
 local current_items = {}
 local selected_idx = 0
 local show_timer = vim.uv.new_timer()
@@ -73,11 +74,15 @@ local kind_map = vim.lsp.protocol.CompletionItemKind
 local kind_names = {}
 for name, id in pairs(kind_map) do kind_names[id] = name end
 
+---Get icon for completion item
+---@param item table
+---@return string
 local function get_icon(item)
     local kind_name = kind_names[item.kind]
     return kind_icons[kind_name] or "󰉿"
 end
 
+---Close documentation window
 function M.close_docs()
     if doc_win_id and vim.api.nvim_win_is_valid(doc_win_id) then
         pcall(vim.api.nvim_win_close, doc_win_id, true)
@@ -85,6 +90,7 @@ function M.close_docs()
     doc_win_id = nil
 end
 
+---Close signature window
 function M.close_sig()
     if sig_win_id and vim.api.nvim_win_is_valid(sig_win_id) then
         pcall(vim.api.nvim_win_close, sig_win_id, true)
@@ -92,6 +98,8 @@ function M.close_sig()
     sig_win_id = nil
 end
 
+---Scroll documentation window
+---@param delta number
 function M.scroll_docs(delta)
     if doc_win_id and vim.api.nvim_win_is_valid(doc_win_id) then
         pcall(vim.api.nvim_win_call, doc_win_id, function()
@@ -104,6 +112,8 @@ function M.scroll_docs(delta)
     end
 end
 
+---Render documentation content
+---@param docs string|table
 function M.render_docs(docs)
     if not docs then return end
     if not doc_buf_id or not vim.api.nvim_buf_is_valid(doc_buf_id) then
@@ -145,6 +155,8 @@ function M.render_docs(docs)
     vim.api.nvim_set_option_value('winhl', 'Normal:CmpPmenu,FloatBorder:CmpPmenuBorder', { win = doc_win_id })
 end
 
+---Resolve completion item and show documentation
+---@param item table
 function M.resolve_and_show_docs(item)
     doc_timer:stop()
     doc_timer:start(50, 0, vim.schedule_wrap(function()
@@ -166,6 +178,7 @@ function M.resolve_and_show_docs(item)
     end))
 end
 
+---Show signature help
 function M.signature_help()
     local params = vim.lsp.util.make_position_params()
     vim.lsp.buf_request(0, 'textDocument/signatureHelp', params, function(err, result)
@@ -219,6 +232,7 @@ function M.signature_help()
     end)
 end
 
+---Close completion menu and documentation
 function M.close()
     ui:close()
     M.close_docs()
@@ -226,6 +240,7 @@ function M.close()
     selected_idx = 0
 end
 
+---Confirm completion selection
 function M.confirm()
     local item = current_items[selected_idx]
     if not item then
@@ -289,6 +304,7 @@ function M.confirm()
     end
 end
 
+---Trigger completion request
 function M.trigger()
     local params = vim.lsp.util.make_position_params()
     vim.lsp.buf_request(0, 'textDocument/completion', params, function(err, result, ctx)
@@ -359,6 +375,7 @@ function M.trigger()
     end)
 end
 
+---Initialize completion setup
 function M.setup()
     local group = vim.api.nvim_create_augroup('custom_completion', { clear = true })
 

@@ -1,3 +1,5 @@
+---Custom statuscolumn function
+---@return string
 function _G.MyStatusCol()
     -- 1. FAST PATH: If the buffer is massive, fall back to basic numbers/signs instantly
     -- This prevents the 180k-line search from stuttering even if we forgot to mute it.

@@ -4,7 +4,9 @@
 
 local layout_stack = {}
 
--- Recursive function to capture the current layout tree
+---Recursive function to capture the current layout tree
+---@param layout table Layout returned by winlayout()
+---@return table
 local function get_layout_node(layout)
     if layout[1] == "leaf" then
         return { type = "leaf", winid = layout[2], bufnr = vim.fn.winbufnr(layout[2]) }
@@ -17,7 +19,8 @@ local function get_layout_node(layout)
     end
 end
 
--- Recursive function to re-apply the layout tree
+---Recursive function to re-apply the layout tree
+---@param layout table Captured layout node
 local function apply_layout(layout)
     if layout.type == "leaf" then
         -- Create a split if we aren't at the root, but logic handled by parent loop

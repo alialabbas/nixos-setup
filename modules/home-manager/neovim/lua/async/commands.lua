@@ -1,6 +1,12 @@
 local async = require("async")
 local M = {}
 
+local async = require("async")
+local M = {}
+
+---Find text function for quickfix/loclist
+---@param info table
+---@return string[]
 function M._find_text_func(info)
     local items = vim.fn.getqflist({ id = info.id, items = 1 }).items
     local res = {}
@@ -17,15 +23,17 @@ function M._find_text_func(info)
     return res
 end
 
+---Get command string from program and arguments
+---@param prg string
+---@param args? string
+---@return string
 local function get_cmd(prg, args)
     if not args or args == "" then return prg:gsub("%$%*", "") end
     if prg:find("%$%*") then return prg:gsub("%$%*", args) end
     return prg .. " " .. args
 end
 
----
---Generates a safe buffer name for a task type and project root
----
+---Generates a safe buffer name for a task type and project root
 ---@param type string
 ---@return string
 local function get_task_buf_name(type)
@@ -33,9 +41,7 @@ local function get_task_buf_name(type)
     return string.format("//task/%s/%s", type, project)
 end
 
----
---Get or create a buffer by name
----
+---Get or create a buffer by name
 ---@param name string
 ---@return number bufnr
 local function get_or_create_buf(name)
@@ -48,6 +54,10 @@ local function get_or_create_buf(name)
     return b
 end
 
+---Internal helper to run navigation tasks
+---@param type string
+---@param cmd_str string
+---@param efm? string
 function M._run_nav_task(type, cmd_str, efm)
     local winid = vim.api.nvim_get_current_win()
     local buf_name = get_task_buf_name(type)
@@ -68,6 +78,8 @@ function M._run_nav_task(type, cmd_str, efm)
     })
 end
 
+---Run tests for the current buffer
+---@param args string
 function M.test(args)
     local prg = vim.b.testprg
     if not prg or prg == "" then
@@ -109,6 +121,8 @@ function M.test(args)
     })
 end
 
+---Run make command
+---@param args string
 function M.make(args)
     local prg = vim.bo.makeprg ~= "" and vim.bo.makeprg or vim.go.makeprg
     local efm = vim.bo.errorformat ~= "" and vim.bo.errorformat or vim.go.errorformat
@@ -116,6 +130,8 @@ function M.make(args)
     M._run_nav_task("make", cmd, efm)
 end
 
+---Run grep command
+---@param args string
 function M.grep(args)
     local prg = vim.bo.grepprg ~= "" and vim.bo.grepprg or vim.go.grepprg
     local efm = vim.bo.grepformat ~= "" and vim.bo.grepformat or vim.go.grepformat
@@ -135,6 +151,8 @@ function M.grep(args)
     M._run_nav_task("grep", cmd, efm)
 end
 
+---Run find command
+---@param args string
 function M.find(args)
     local prg = vim.fn.executable("fd") == 1 and "fd" or "find ."
 
@@ -147,10 +165,13 @@ function M.find(args)
     M._run_nav_task("find", cmd, "%f")
 end
 
+---Run a generic task
+---@param args string|string[]
 function M.task(args)
     async.run(args, { sinks = { async.sinks.buffer.new(), async.sinks.fidget.new() } })
 end
 
+---List all running tasks
 function M.list_tasks()
     local tasks = async.list()
     if #tasks == 0 then return vim.notify("No running tasks.", vim.log.levels.INFO) end
@@ -161,6 +182,8 @@ function M.list_tasks()
     print(table.concat(lines, "\n"))
 end
 
+---Stop a task by PID
+---@param pid_str string
 function M.stop_task(pid_str)
     local pid = tonumber(pid_str)
     if not pid then return vim.notify("Invalid PID: " .. tostring(pid_str), vim.log.levels.ERROR) end
@@ -168,11 +191,15 @@ function M.stop_task(pid_str)
     vim.notify("Sent SIGTERM to task " .. pid, vim.log.levels.INFO)
 end
 
+---Stop all running tasks
 function M.stop_all() async.stop_all() end
 
 local fuzzy_pid = nil
 
--- Core search engine for FuzzySearch
+---Core search engine for FuzzySearch
+---@param query string
+---@param results_buf number
+---@param results_win_id number
 function M._run_fuzzy_search(query, results_buf, results_win_id)
     query = query:match("^%s*(.-)%s*$")
     if not query or query == "" then
@@ -210,6 +237,8 @@ function M._run_fuzzy_search(query, results_buf, results_win_id)
     })
 end
 
+---Start a fuzzy search
+---@param args string
 function M.fuzzy_search(args)
     local results_win = vim.api.nvim_get_current_win()
     local project_name = vim.fn.fnamemodify(vim.uv.cwd(), ":t")

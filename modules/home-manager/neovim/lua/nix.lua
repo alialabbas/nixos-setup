@@ -1,6 +1,8 @@
 local async = require("async")
 local M = {}
 
+---Run nix shell and update PATH environment variable
+---@param args? string Packages to include in the shell
 function M.shell(args)
     if vim.fn.executable("nix") == 0 then
         vim.notify("nix command not found", vim.log.levels.ERROR)

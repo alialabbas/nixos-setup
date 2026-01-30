@@ -1,3 +1,5 @@
+---Custom foldtext function with treesitter highlighting
+---@return table[]
 function _G.HighlightedFoldtext()
     local pos = vim.v.foldstart
     local line = vim.api.nvim_buf_get_lines(0, pos - 1, pos, false)[1]

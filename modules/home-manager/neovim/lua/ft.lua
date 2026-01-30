@@ -46,6 +46,8 @@ vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
             "%.%#[%tRROR] %f: %.%#: %.%#: line %l: %m," ..
             "%.%#[%tRROR] templates/: %.%# (%f:%l): %m," ..
             "%-G%.%#"
+
+        ---Run helm template and show results in a new buffer or quickfix
         local function helm_template()
             local res = vim.system({ "helm", "template", "." }):wait()
             if res.code ~= 0 then

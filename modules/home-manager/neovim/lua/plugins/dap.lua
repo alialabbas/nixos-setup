@@ -47,9 +47,10 @@ end
 --- walk up from the start dir and find a file matching the pattern
 ---@param start string
 ---@param pattern string supports glob pattern
+---@return string[]
 FS.find_root = function(start, pattern)
     if start == "/" then
-        return ""
+        return {}
     end
 
     local result = vim.fn.glob(start .. "/" .. pattern, true, true)
@@ -57,18 +58,17 @@ FS.find_root = function(start, pattern)
         return result
     end
 
-    FS.find_root(vim.fn.fnamemodify(start, ":h"), pattern)
+    return FS.find_root(vim.fn.fnamemodify(start, ":h"), pattern)
 end
 
 local Treesitter = {}
 
---- Generic parse query method that would either process a query on a buffer or strin content
---- The result is always something like this table = { string in to_capture = { value = node_value, row_end, row_start, col_start, col_end}}
+--- Generic parse query method that would either process a query on a buffer or string content
 ---@param query string TS query
 ---@param file integer|string buf id or file content
 ---@param lang string language to use in the query
----@param to_capture string[] list of strings represeneting capture groups in the passed query.
----@return table<string, any>[] list of tables, each table contains a full capture group pased on the specified spec in to_capture
+---@param to_capture string[] list of strings representing capture groups in the passed query.
+---@return table<string, any>[] list of tables, each table contains a full capture group based on the specified spec in to_capture
 Treesitter.parse_query = function(query, file, lang, to_capture)
     local parser = vim.treesitter.get_parser
     if type(file) == "string" then
@@ -172,6 +172,9 @@ Dotnet.ts.queries = {
     ]]
 }
 
+---Get all tests in a buffer
+---@param bufnr number
+---@return string[]
 Dotnet.get_tests = function(bufnr)
     local result = Treesitter.parse_query(
         Dotnet.ts.queries.tests,
@@ -230,9 +233,9 @@ Dotnet.find_dll = function(project)
     return output
 end
 
---- TODO: This is unsafe, we could poll forever and just crash
+--- Run dotnet test and return the testhost pid
 ---@param project string csproj project to test
----@param test_args table|string|nil additional args to pass to dotnet test command
+---@param test_args? table|string additional args to pass to dotnet test command
 ---@return integer|nil vshost pid
 Dotnet.test = function(project, test_args)
     if vim.fn.fnamemodify(project, ":e") ~= "csproj" then

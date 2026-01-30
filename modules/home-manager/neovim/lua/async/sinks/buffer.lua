@@ -47,6 +47,7 @@ function M.new(opts)
     if opts.clear == nil then opts.clear = true end
     local bufnr = opts.bufnr
     local processor_factory = opts.processor or require("async.ansi").create_processor
+    ---@type Async.AnsiProcessor
     local processor = nil
     local source_win = opts.winid or vim.api.nvim_get_current_win()
     local opened = false
@@ -215,6 +216,7 @@ function M.new(opts)
         vim.bo[bufnr].modified = false
     end)
 
+    ---@type Async.Sink
     return {
         validate = function()
             if opts.bufnr and not vim.api.nvim_buf_is_valid(opts.bufnr) then

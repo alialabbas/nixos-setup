@@ -1,11 +1,40 @@
 local M = {}
 
+---@class Async.TaskExitObj
+---@field code number
+---@field signal number
+
+---@class Async.Task
+---@field pid string|number
+---@field cmd string[]
+---@field name string
+---@field sinks Async.Sink[]
+---@field running boolean
+---@field handle? any # vim.system handle
+---@field complete? fun(obj?: Async.TaskExitObj) # Only for Lua tasks
+
+---@class Async.Sink
+---@field on_start? fun(task: Async.Task)
+---@field on_stdout? fun(task: Async.Task, data: string)
+---@field on_stderr? fun(task: Async.Task, data: string)
+---@field on_exit? fun(task: Async.Task, obj: Async.TaskExitObj)
+---@field validate? fun(task: Async.Task): boolean, string?
+
 -- State: pid -> { handle, cmd, sinks, running }
+---@type table<string|number, Async.Task>
 local tasks = {}
 local lua_task_counter = 0
 
 local list_sink = require("async.sinks.list")
 
+---@class Async.Sinks
+---@field buffer {new: fun(opts?: Async.Sink.BufferOpts): Async.Sink}
+---@field notify {new: fun(opts?: table): Async.Sink}
+---@field fidget {new: fun(opts?: table): Async.Sink}
+---@field quickfix {new: fun(opts?: Async.Sink.ListOpts): Async.Sink}
+---@field loclist {new: fun(opts?: Async.Sink.ListOpts): Async.Sink}
+
+---@type Async.Sinks
 M.sinks = {
   buffer = require("async.sinks.buffer"),
   notify = require("async.sinks.notify"),
@@ -26,6 +55,9 @@ M.sinks = {
   },
 }
 
+---@param task Async.Task
+---@param type "stdout"|"stderr"
+---@param data string
 local function dispatch(task, type, data)
   -- If task was already marked as not running, ignore incoming data immediately
   if not task.running then return end
@@ -45,12 +77,22 @@ local function dispatch(task, type, data)
   end)
 end
 
+---@class Async.RunOpts
+---@field sinks? Async.Sink[]
+---@field cwd? string
+---@field env? table<string, string|number>
+
+---Run a command or a lua function as an async task
+---@param target string|string[]|fun(emit: fun(data: string), task: Async.Task)
+---@param opts? Async.RunOpts
+---@return string|number pid
 function M.run(target, opts)
   opts = opts or {}
   local is_lua = type(target) == "function"
   local cmd_list = not is_lua and (type(target) == "string" and { vim.o.shell, vim.o.shellcmdflag, target } or target) or nil
   local sinks = opts.sinks or {}
 
+  ---@type Async.Task
   local task = {
     cmd = cmd_list or { "lua_task" },
     name = is_lua and "lua_task" or (type(target) == "string" and target or table.concat(target, " ")),
@@ -139,6 +181,8 @@ function M.run(target, opts)
   return task.pid
 end
 
+---Stop a running task by pid
+---@param pid string|number
 function M.stop(pid)
   local task = tasks[pid]
   if task then
@@ -158,6 +202,7 @@ function M.stop(pid)
   end
 end
 
+---Stop all running tasks
 function M.stop_all()
   for pid, _ in pairs(tasks) do
     M.stop(pid)
@@ -165,6 +210,8 @@ function M.stop_all()
   vim.notify("All tasks terminated.", vim.log.levels.INFO)
 end
 
+---List all running tasks
+---@return {pid: string|number, cmd: string[], running: boolean}[]
 function M.list()
   local result = {}
   for pid, task in pairs(tasks) do
@@ -173,6 +220,8 @@ function M.list()
   return result
 end
 
+---Get status text for statusline
+---@return string
 function M.status()
   local count = 0
   local names = {}

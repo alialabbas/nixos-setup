@@ -1,6 +1,8 @@
 local M = {}
 
+---Create a new fidget sink
 ---@param opts? table
+---@return Async.Sink
 function M.new(opts)
   local handle = nil
 

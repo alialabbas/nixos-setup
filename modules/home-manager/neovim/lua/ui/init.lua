@@ -1,7 +1,10 @@
 local menu = require('ui.menu')
 local M = {}
 
--- Override vim.ui.select
+---Override vim.ui.select with a custom menu
+---@param items any[]
+---@param opts? {prompt?: string, format_item?: fun(item: any): string}
+---@param on_choice fun(item: any|nil, idx: number|nil)
 function vim.ui.select(items, opts, on_choice)
     opts = opts or {}
     local prompt = opts.prompt or "Select one of:"
@@ -54,12 +57,14 @@ function vim.ui.select(items, opts, on_choice)
     vim.keymap.set('n', '<CR>', confirm, { buffer = bufnr, silent = true })
     vim.keymap.set('n', '<Esc>', function() close(); on_choice(nil, nil) end, { buffer = bufnr, silent = true })
     vim.keymap.set('n', 'q', function() close(); on_choice(nil, nil) end, { buffer = bufnr, silent = true })
-    
+
     -- Focus the window
     vim.api.nvim_set_current_win(winid)
 end
 
--- Override vim.ui.input
+---Override vim.ui.input with a custom floating window
+---@param opts? {prompt?: string, default?: string}
+---@param on_confirm fun(value: string|nil)
 function vim.ui.input(opts, on_confirm)
     opts = opts or {}
     local prompt = opts.prompt or "Input:"
@@ -67,7 +72,7 @@ function vim.ui.input(opts, on_confirm)
 
     local buf = vim.api.nvim_create_buf(false, true)
     local width = math.max(#prompt + #default + 10, 40)
-    
+
     local win = vim.api.nvim_open_win(buf, true, {
         relative = 'editor',
         row = math.floor(vim.o.lines / 2) - 1,
@@ -82,7 +87,7 @@ function vim.ui.input(opts, on_confirm)
 
     vim.api.nvim_set_option_value('winhl', 'Normal:CmpPmenu,FloatBorder:CmpPmenuBorder', { win = win })
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, { default })
-    
+
     if default ~= "" then
         vim.api.nvim_win_set_cursor(win, { 1, #default })
     end

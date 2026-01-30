@@ -7,6 +7,8 @@ M.config = {
     layer2 = { '.git', '_darcs', '.hg', '.bzr', '.svn' }
 }
 
+---Find the project root based on markers
+---@return string|nil
 local function find_root()
     local path = vim.api.nvim_buf_get_name(0)
     if path == "" then return nil end
@@ -20,6 +22,8 @@ local function find_root()
 
     local root_layer1 = nil
 
+    ---@param dir string
+    ---@return string|nil
     local function check_dir(dir)
         -- Check Layer 2 first (Ultimate markers)
         for _, pattern in ipairs(M.config.layer2) do
@@ -54,6 +58,7 @@ local function find_root()
     return root_layer1
 end
 
+---Change directory to the project root
 function M.root()
     -- Only run for normal buffers or Oil buffers
     if vim.bo.buftype ~= "" and vim.bo.filetype ~= "oil" then return end
@@ -65,6 +70,8 @@ function M.root()
     end
 end
 
+---Initialize rooter with custom config
+---@param opts? table
 function M.setup(opts)
     M.config = vim.tbl_deep_extend("force", M.config, opts or {})
 end

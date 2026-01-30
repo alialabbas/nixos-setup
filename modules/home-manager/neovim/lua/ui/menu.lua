@@ -1,5 +1,21 @@
+---@class UI.Menu
+---@field config UI.MenuConfig
+---@field win_id? number
+---@field buf_id? number
+---@field ns_id number
 local M = {}
 
+---@class UI.MenuConfig
+---@field min_width? number
+---@field max_height? number
+---@field border? string|table
+---@field highlight? string
+---@field title? string
+---@field focusable? boolean
+
+---Create a new Menu instance
+---@param opts? UI.MenuConfig
+---@return UI.Menu
 function M.new(opts)
     local self = setmetatable({}, { __index = M })
     self.config = vim.tbl_deep_extend("force", {
@@ -14,6 +30,13 @@ function M.new(opts)
     return self
 end
 
+---@class UI.MenuItem
+---@field text string
+---@field highlights? {group: string, start_col: number, end_col: number}[]
+
+---Open the menu with items
+---@param items (string|UI.MenuItem)[]
+---@param geometry? table
 function M:open(items, geometry)
     if not items or #items == 0 then
         self:close()
@@ -28,12 +51,12 @@ function M:open(items, geometry)
     local lines = {}
     local highlights = {}
     local max_l = 0
-    
+
     for i, item in ipairs(items) do
         local text = type(item) == "string" and item or item.text
         table.insert(lines, text)
         max_l = math.max(max_l, #text + 2)
-        
+
         if type(item) == "table" and item.highlights then
             for _, hl in ipairs(item.highlights) do
                 table.insert(highlights, { i - 1, hl.group, hl.start_col, hl.end_col })
@@ -53,7 +76,7 @@ function M:open(items, geometry)
 
     local height = math.min(#items, self.config.max_height)
     local width = math.max(self.config.min_width, math.min(max_l, vim.o.columns - 5))
-    
+
     local win_opts = vim.tbl_deep_extend("force", {
         relative = 'editor',
         width = width,
@@ -76,6 +99,8 @@ function M:open(items, geometry)
     end)
 end
 
+---Set the cursor position in the menu
+---@param idx number
 function M:set_cursor(idx)
     if self.win_id and vim.api.nvim_win_is_valid(self.win_id) then
         pcall(function()
@@ -89,6 +114,7 @@ function M:set_cursor(idx)
     end
 end
 
+---Close the menu window
 function M:close()
     if self.win_id and vim.api.nvim_win_is_valid(self.win_id) then
         pcall(vim.api.nvim_win_close, self.win_id, true)

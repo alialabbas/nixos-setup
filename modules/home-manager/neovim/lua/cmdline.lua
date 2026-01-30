@@ -1,12 +1,14 @@
 local menu = require('ui.menu')
 local M = {}
 local last_cmd = ""
+---@type string[]
 local current_list = {}
 local show_timer = vim.uv.new_timer()
 local ui = menu.new({
     highlight = 'Normal:CmpPmenu,FloatBorder:CmpPmenuBorder,CursorLine:PmenuSel',
 })
 
+---Show the cmdline completion menu
 function M.show()
     local cmd = vim.fn.getcmdline()
     local cmd_type = vim.fn.getcmdtype()
@@ -63,6 +65,7 @@ function M.show()
     vim.cmd('redraw')
 end
 
+---Close the cmdline completion menu
 function M.close()
     ui:close()
     current_list = {}
@@ -70,6 +73,7 @@ function M.close()
     vim.cmd('redraw')
 end
 
+---Initialize cmdline UI
 function M.setup()
     vim.opt.wildmenu = false
     vim.opt.wildmode = "longest:full,full"
