@@ -75,7 +75,9 @@ function M.perform_jump(item, source_win)
             end
 
             if item.lnum > 0 then
-                vim.api.nvim_win_set_cursor(target_win, { item.lnum, math.max(0, item.col - 1) })
+                local line_count = vim.api.nvim_buf_line_count(bufnr)
+                local target_line = math.min(item.lnum, math.max(1, line_count))
+                vim.api.nvim_win_set_cursor(target_win, { target_line, math.max(0, item.col - 1) })
                 vim.cmd("normal! zz")
             end
         end

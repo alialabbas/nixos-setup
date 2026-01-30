@@ -130,7 +130,7 @@ function M.create_processor(bufnr, opts)
       local captures = { text:match(pattern) }
 
       if #captures == 0 then
-        return nil
+        return text, highlights
       end
 
       local f = captures[1]
