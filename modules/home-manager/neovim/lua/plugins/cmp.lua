@@ -180,6 +180,11 @@ end
 
 ---Show signature help
 function M.signature_help()
+    local get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
+    if #get_clients({ bufnr = 0, method = 'textDocument/signatureHelp' }) == 0 then
+        return
+    end
+
     local params = vim.lsp.util.make_position_params()
     vim.lsp.buf_request(0, 'textDocument/signatureHelp', params, function(err, result)
         if err or not result or not result.signatures or #result.signatures == 0 then
@@ -306,6 +311,11 @@ end
 
 ---Trigger completion request
 function M.trigger()
+    local get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
+    if #get_clients({ bufnr = 0, method = 'textDocument/completion' }) == 0 then
+        return
+    end
+
     local params = vim.lsp.util.make_position_params()
     vim.lsp.buf_request(0, 'textDocument/completion', params, function(err, result, ctx)
         if err or not result then return end
@@ -386,11 +396,16 @@ function M.setup()
             local cursor = vim.api.nvim_win_get_cursor(0)
             local char_before = line:sub(cursor[2], cursor[2])
             
+            local get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
             if char_before == '(' or char_before == ',' then
-                M.signature_help()
+                if #get_clients({ bufnr = 0, method = 'textDocument/signatureHelp' }) > 0 then
+                    M.signature_help()
+                end
             elseif char_before:match("[%w_%.]") then
-                show_timer:stop()
-                show_timer:start(10, 0, vim.schedule_wrap(M.trigger))
+                if #get_clients({ bufnr = 0, method = 'textDocument/completion' }) > 0 then
+                    show_timer:stop()
+                    show_timer:start(10, 0, vim.schedule_wrap(M.trigger))
+                end
             else
                 if ui.win_id then M.close() end
                 if sig_win_id then M.close_sig() end
