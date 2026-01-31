@@ -44,6 +44,21 @@ describe("async.processors", function()
       assert.are.equal(2, #hls)
       assert.are.equal("CODE1", line:sub(hls[1][1]+1, hls[1][2]))
     end)
+
+    it("should NOT leak buffers when using treesitter highlighting", function()
+      local p = processors.create_processor(0, { ft = "lua" })
+      local line = "lua/init.lua:1:1: local x = 1"
+      
+      local initial_buf_count = #vim.api.nvim_list_bufs()
+      
+      -- Process multiple lines
+      for _ = 1, 10 do
+        p.process_line(line)
+      end
+      
+      local final_buf_count = #vim.api.nvim_list_bufs()
+      assert.are.equal(initial_buf_count, final_buf_count, "Buffers were leaked during processing")
+    end)
   end)
 
   describe("create_qf_processor", function()

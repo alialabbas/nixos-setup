@@ -70,12 +70,10 @@ local Treesitter = {}
 ---@param to_capture string[] list of strings representing capture groups in the passed query.
 ---@return table<string, any>[] list of tables, each table contains a full capture group based on the specified spec in to_capture
 Treesitter.parse_query = function(query, file, lang, to_capture)
-    local parser = vim.treesitter.get_parser
-    if type(file) == "string" then
-        parser = vim.treesitter.get_string_parser
-    end
+    local is_string = type(file) == "string"
+    local parser_func = is_string and vim.treesitter.get_string_parser or vim.treesitter.get_parser
 
-    local language_tree = parser(file, lang)
+    local language_tree = parser_func(file, lang)
     local root = language_tree:parse()[1]:root()
 
     local output = {}
@@ -97,6 +95,14 @@ Treesitter.parse_query = function(query, file, lang, to_capture)
         end
         table.insert(output, result)
     end
+
+    if is_string then
+        local bufnr = language_tree:source()
+        if type(bufnr) == "number" then
+            vim.api.nvim_buf_delete(bufnr, { force = true })
+        end
+    end
+
     return output
 end
 

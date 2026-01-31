@@ -27,10 +27,22 @@ local function get_ts_highlights(text, lang)
   if not ok_parser or not parser then return {} end
 
   local ok_tree, tree = pcall(parser.parse, parser)
-  if not (ok_tree and tree and tree[1]) then return {} end
+  if not (ok_tree and tree and tree[1]) then
+    local bufnr = parser:source()
+    if type(bufnr) == "number" then
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+    return {}
+  end
 
   local ok_query, query = pcall(ts.query.get, lang, "highlights")
-  if not (ok_query and query) then return {} end
+  if not (ok_query and query) then
+    local bufnr = parser:source()
+    if type(bufnr) == "number" then
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+    return {}
+  end
 
   local highlights = {}
   for id, node in query:iter_captures(tree[1]:root(), text, 0, -1) do
@@ -40,6 +52,12 @@ local function get_ts_highlights(text, lang)
     local hl_group = "@" .. name .. "." .. lang
     table.insert(highlights, { start_col, end_col, hl_group })
   end
+
+  local bufnr = parser:source()
+  if type(bufnr) == "number" then
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+  end
+
   return highlights
 end
 
