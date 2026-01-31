@@ -25,3 +25,4 @@ end
 
 vim.keymap.set("n", "]g", ":Gitsigns next_hunk<CR>", { silent = true, desc = "Next edited hunk in a file" })
 vim.keymap.set("n", "[g", ":Gitsigns prev_hunk<CR>", { silent = true, desc = "Prev edited hunk in a file" })
+vim.keymap.set("n", "gp", ":Gitsigns preview_hunk<CR>", { silent = true, desc = "Preview hunk under the cursor" })
