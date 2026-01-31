@@ -241,7 +241,8 @@ function M.new(opts)
             vim.bo[bufnr].modifiable = false
             vim.bo[bufnr].modified = false
             
-            processor = processor_factory(bufnr, opts.processor_opts)
+            local processor_opts = vim.tbl_extend("force", opts.processor_opts or {}, { cwd = task.cwd })
+            processor = processor_factory(bufnr, processor_opts)
             
             vim.keymap.set("n", "dd", function() delete_line(bufnr) end, { buffer = bufnr, desc = "Delete line" })
             vim.keymap.set("v", "d", function() delete_selection(bufnr) end, { buffer = bufnr, desc = "Delete selection" })

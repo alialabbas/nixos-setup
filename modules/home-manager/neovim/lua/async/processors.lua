@@ -52,6 +52,7 @@ function M.create_qf_processor(bufnr, opts)
     local ns = vim.api.nvim_create_namespace("async_qf_" .. bufnr)
     local efm = opts.efm or vim.bo.errorformat
     local hls = vim.tbl_extend("force", default_groups, opts.groups or {})
+    local cwd = opts.cwd
 
     -- Generic state to track location across lines
     local state = { fname = nil, lnum = 0, col = 0 }
@@ -59,15 +60,27 @@ function M.create_qf_processor(bufnr, opts)
     return {
         ns = ns,
         process_line = function(text)
-            local qf = vim.fn.getqflist({ lines = { text }, efm = efm })
+            local qf
+            if cwd then
+                local old_cwd = vim.fn.getcwd()
+                local ok_cd = pcall(vim.api.nvim_set_current_dir, cwd)
+                qf = vim.fn.getqflist({ lines = { text }, efm = efm })
+                if ok_cd then pcall(vim.api.nvim_set_current_dir, old_cwd) end
+            else
+                qf = vim.fn.getqflist({ lines = { text }, efm = efm })
+            end
+
             local item = qf.items[1]
 
             if not item or item.valid == 0 then
                 return nil
             end
 
-            local fname = vim.fn.bufname(item.bufnr)
-            if fname == "" and item.filename ~= "" then fname = item.filename end
+            local fname = ""
+            if item.bufnr > 0 then
+                fname = vim.fn.bufname(item.bufnr)
+            end
+            if fname == "" and (item.filename and item.filename ~= "") then fname = item.filename end
 
             -- Update state if this line provides new location info
             if fname ~= "" then state.fname = fname end

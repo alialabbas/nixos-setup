@@ -98,6 +98,7 @@ function M.run(target, opts)
     name = is_lua and "lua_task" or (type(target) == "string" and target or table.concat(target, " ")),
     sinks = sinks,
     running = true,
+    cwd = opts.cwd or vim.fn.getcwd(),
   }
 
   -- Validate sinks before starting

@@ -60,7 +60,7 @@ describe("async.processors", function()
       
       -- First line with location
       vim.fn.getqflist = function() 
-        return { items = { { valid = 1, filename = "a.txt", lnum = 1, col = 1, text = "msg1" } } }
+        return { items = { { valid = 1, bufnr = 1, filename = "a.txt", lnum = 1, col = 1, text = "msg1" } } }
       end
       vim.fn.bufname = function() return "a.txt" end
 
@@ -69,12 +69,28 @@ describe("async.processors", function()
 
       -- Second line without location (continuation)
       vim.fn.getqflist = function() 
-        return { items = { { valid = 1, filename = "", lnum = 0, col = 0, text = "msg2" } } }
+        return { items = { { valid = 1, bufnr = 0, filename = "", lnum = 0, col = 0, text = "msg2" } } }
       end
       vim.fn.bufname = function() return "" end
 
       local clean2, hls2 = p.process_line("msg2")
       assert.are.equal("a.txt:1:1: msg2", clean2)
+    end)
+
+    it("should NOT use current buffer (bufnr 0) as fallback filename", function()
+      local p = processors.create_qf_processor(0, { efm = "Error: %m" })
+      
+      -- Mock getqflist to return bufnr 0 (current buffer) but no filename
+      vim.fn.getqflist = function() 
+        return { items = { { valid = 1, bufnr = 0, filename = "", lnum = 0, col = 0, text = "some error" } } }
+      end
+      -- Mock bufname(0) to return a name, which we want to IGNORE
+      vim.fn.bufname = function(n) return n == 0 and "wrong_file.go" or "" end
+
+      local clean, hls = p.process_line("Error: some error")
+      
+      -- It should be nil because it has no filename in state and we rejected bufnr 0
+      assert.is_nil(clean)
     end)
   end)
 end)
